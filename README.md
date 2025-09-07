@@ -1,1 +1,1 @@
-Compile and run: g++ src/main.cpp -o src/main.exe -lgdi32 -luser32 -municode && ./src/main.exe
+Compile and run: g++ src/main.cpp -o src/main.exe -lgdi32 -luser32 && ./src/main.exe

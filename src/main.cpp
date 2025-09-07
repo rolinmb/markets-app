@@ -10,13 +10,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         // Create a static text label
         CreateWindowExA(
             0, "STATIC", "markets-app", WS_CHILD | WS_VISIBLE,
-            50, 20, 200, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
+            50, 20, 100, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
+        );
+
+        CreateWindowExA(
+            0, "STATIC", "Enter a ticker (no more than 4 characters).", WS_CHILD | WS_VISIBLE,
+            50, 45, 100, 50, hwnd, NULL, GetModuleHandle(NULL), NULL
         );
 
         // Create an Edit control (text box)
         HWND hEdit = CreateWindowExA(
             0, "EDIT", "SPY", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
-            50, 50, 100, 25, hwnd, (HMENU)ID_EDITBOX, GetModuleHandle(NULL), NULL
+            50, 100, 100, 25, hwnd, (HMENU)ID_EDITBOX, GetModuleHandle(NULL), NULL
         );
 
         // Limit to 4 characters
@@ -25,7 +30,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         // Create a Button
         CreateWindowExA(
             0, "BUTTON", "Fetch Data", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
-            50, 100, 100, 30, hwnd, (HMENU)ID_BUTTON, GetModuleHandle(NULL), NULL
+            50, 130, 100, 30, hwnd, (HMENU)ID_BUTTON, GetModuleHandle(NULL), NULL
         );
         return 0;
     }
