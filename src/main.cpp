@@ -3,11 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
-
 #include <vector>
-#include <string>
-#include <fstream>
-#include <sstream>
 
 std::vector<std::string> SplitCSVLine(const std::string& line) {
     std::vector<std::string> result;
@@ -91,19 +87,19 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         // Price panel
         hPriceLabel = CreateWindowExA(
             0, "STATIC", "Price ($): --", WS_CHILD | WS_VISIBLE,
-            50, 170, 133, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
+            50, 170, 130, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
         );
 
         // Change % panel
         hChangeLabel = CreateWindowExA(
             0, "STATIC", "% Change: --", WS_CHILD | WS_VISIBLE,
-            50, 195, 133, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
+            50, 195, 130, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
         );
 
         // Dollar Change Panel
         hDollarChangeLabel = CreateWindowExA(
             0, "STATIC", "$ Change: --", WS_CHILD | WS_VISIBLE,
-            50, 220, 133, 40, hwnd, NULL, GetModuleHandle(NULL), NULL
+            50, 220, 130, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
         );
 
         return 0;
@@ -165,9 +161,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 }
             }
 
-            SetWindowTextA(hPriceLabel, ("Price: " + price).c_str());
-            SetWindowTextA(hChangeLabel, ("Change %: " + change).c_str());
-            SetWindowTextA(hDollarChangeLabel, ("Dollar Change: " + dollarChange).c_str());
+            SetWindowTextA(hPriceLabel, ("Price ($): " + price).c_str());
+            SetWindowTextA(hChangeLabel, ("% Change: " + change).c_str());
+            SetWindowTextA(hDollarChangeLabel, ("$ Change: " + dollarChange).c_str());
 
             EnableWindow(hButton, TRUE);
         }
