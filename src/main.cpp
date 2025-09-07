@@ -110,6 +110,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
     case WM_COMMAND: {
         if (LOWORD(wParam) == ID_BUTTON) {
+            // Check if Python script exists
+            std::ifstream scriptFile("scripts/main.py");
+            if (!scriptFile.is_open()) {
+                MessageBoxA(hwnd, "Python script not found. Exiting.", "Error", MB_OK | MB_ICONERROR);
+                PostQuitMessage(0);
+                return 0;
+            }
+
             HWND hButton = GetDlgItem(hwnd, ID_BUTTON);
             EnableWindow(hButton, FALSE);
 
@@ -122,6 +130,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     valid = false;
                     break;
                 }
+            }
+
+            if (buffer[0] == '\0') {
+                MessageBoxA(hwnd, "You must enter at least one character", "Invalid Input", MB_OK | MB_ICONERROR);
+                EnableWindow(hButton, TRUE);
+                break;
             }
 
             if (!valid) {
