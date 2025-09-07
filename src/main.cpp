@@ -1,4 +1,6 @@
 #include <windows.h>
+#include <string>
+#include <cstdlib>
 
 // IDs for controls
 #define ID_EDITBOX 1
@@ -39,10 +41,31 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         if (LOWORD(wParam) == ID_BUTTON) {
             char buffer[5] = {0};
             GetWindowTextA(GetDlgItem(hwnd, ID_EDITBOX), buffer, 5);
-            MessageBoxA(hwnd, buffer, "You typed:", MB_OK);
+
+            // Check if all characters are alphabetical
+            bool valid = true;
+            for (int i = 0; buffer[i] != '\0'; i++) {
+                if (!((buffer[i] >= 'A' && buffer[i] <= 'Z') || (buffer[i] >= 'a' && buffer[i] <= 'z'))) {
+                    valid = false;
+                    break;
+                }
+            }
+
+            if (!valid) {
+                MessageBoxA(hwnd, "Ticker must only contain letters A-Z", "Invalid Input", MB_OK | MB_ICONERROR);
+                break;
+            }
+
+            // Run Python script
+            std::string command = "python scripts/main.py ";
+            command += buffer;
+            system(command.c_str());
+
+            MessageBoxA(hwnd, buffer, "Executing python script to fetch data for:", MB_OK);
         }
         return 0;
     }
+
 
     case WM_DESTROY:
         PostQuitMessage(0);
