@@ -60,12 +60,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 break;
             }
 
+            MessageBoxA(hwnd, buffer, "Executing python script to fetch data for:", MB_OK | MB_ICONEXCLAMATION);
+
             // Run Python script (this is blocking because system() waits)
             std::string command = "python scripts/main.py ";
             command += buffer;
             system(command.c_str());
 
-            MessageBoxA(hwnd, buffer, "Executing python script to fetch data for:", MB_OK | MB_ICONINFORMATION);
+            MessageBoxA(hwnd, buffer, "Successfully executed python script and fetched data for:", MB_OK | MB_ICONINFORMATION);
 
             EnableWindow(hButton, TRUE); // re-enable button after script finishes
         }
