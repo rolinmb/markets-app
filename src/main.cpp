@@ -4,26 +4,42 @@
 #include <fstream>
 #include <sstream>
 
-std::string LoadCSV(const std::string& path) {
+#include <vector>
+#include <string>
+#include <fstream>
+#include <sstream>
+
+std::vector<std::string> SplitCSVLine(const std::string& line) {
+    std::vector<std::string> result;
+    std::stringstream ss(line);
+    std::string cell;
+
+    while (std::getline(ss, cell, ',')) {
+        result.push_back(cell);
+    }
+    return result;
+}
+
+std::vector<std::vector<std::string>> LoadCSV(const std::string& path) {
     std::ifstream file(path);
+    std::vector<std::vector<std::string>> rows;
+
     if (!file.is_open()) {
-        return "Error: Could not open CSV file.";
+        return rows; // empty
     }
 
-    std::ostringstream ss;
     std::string line;
 
-    // Skip the first line (header row)
+    // Skip header line
     if (std::getline(file, line)) {
-        // do nothing, just discard it
+        // ignore
     }
 
-    // Now read the rest of the lines
     while (std::getline(file, line)) {
-        ss << line << "\r\n";  // Windows-style newline
+        rows.push_back(SplitCSVLine(line));
     }
 
-    return ss.str();
+    return rows;
 }
 
 // IDs for controls
@@ -31,6 +47,9 @@ std::string LoadCSV(const std::string& path) {
 #define ID_BUTTON  2
 
 HWND hTextDisplay;
+HWND hPriceLabel;
+HWND hChangeLabel;
+HWND hDollarChangeLabel;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
@@ -61,12 +80,32 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             50, 130, 100, 30, hwnd, (HMENU)ID_BUTTON, GetModuleHandle(NULL), NULL
         );
 
+        // Data Panel
         hTextDisplay = CreateWindowExA(
             WS_EX_CLIENTEDGE, "EDIT", "",
             WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY,
             200, 20, 250, 400, // x, y, width, height
             hwnd, NULL, GetModuleHandle(NULL), NULL
         );
+
+        // Price panel
+        hPriceLabel = CreateWindowExA(
+            0, "STATIC", "Price ($): --", WS_CHILD | WS_VISIBLE,
+            50, 170, 133, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
+        );
+
+        // Change % panel
+        hChangeLabel = CreateWindowExA(
+            0, "STATIC", "% Change: --", WS_CHILD | WS_VISIBLE,
+            50, 195, 133, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
+        );
+
+        // Dollar Change Panel
+        hDollarChangeLabel = CreateWindowExA(
+            0, "STATIC", "$ Change: --", WS_CHILD | WS_VISIBLE,
+            50, 220, 133, 40, hwnd, NULL, GetModuleHandle(NULL), NULL
+        );
+
         return 0;
     }
 
@@ -97,12 +136,38 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             command += buffer;
             system(command.c_str());
 
-            // Load CSV content
             std::string csvPath = "data/" + std::string(buffer) + ".csv";
-            std::string contents = LoadCSV(csvPath);
+            auto rows = LoadCSV(csvPath);
 
-            // Show in the scrollable text box
-            SetWindowTextA(hTextDisplay, contents.c_str());
+            std::ostringstream out;
+            for (const auto& row : rows) {
+                for (size_t i = 0; i < row.size(); i++) {
+                    out << row[i];
+                    if (i < row.size() - 1) {
+                        out << " | "; // separator
+                    }
+                }
+                out << "\r\n"; // newline for EDIT control
+            }
+
+            SetWindowTextA(hTextDisplay, out.str().c_str());
+
+            std::string price = "--", change = "--", dollarChange = "--";
+            for (const auto& row : rows) {
+                if (row.size() >= 2) {
+                    if (row[0] == "Price") {
+                        price = row[1];
+                    } else if (row[0] == "Change") {
+                        change = row[1];
+                    } else if (row[0] == "Dollar Change") {
+                        dollarChange = row[1];
+                    }
+                }
+            }
+
+            SetWindowTextA(hPriceLabel, ("Price: " + price).c_str());
+            SetWindowTextA(hChangeLabel, ("Change %: " + change).c_str());
+            SetWindowTextA(hDollarChangeLabel, ("Dollar Change: " + dollarChange).c_str());
 
             EnableWindow(hButton, TRUE);
         }
