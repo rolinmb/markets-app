@@ -40,12 +40,15 @@ std::vector<std::vector<std::string>> LoadCSV(const std::string& path) {
 
 // IDs for controls
 #define ID_EDITBOX 1
-#define ID_BUTTON  2
+#define ID_BUTTON 2
+#define ID_TIMER 100
 
 HWND hTextDisplay;
 HWND hPriceLabel;
 HWND hChangeLabel;
 HWND hDollarChangeLabel;
+
+std::string g_currentTicker;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
@@ -166,11 +169,50 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             SetWindowTextA(hDollarChangeLabel, ("$ Change: " + dollarChange).c_str());
 
             EnableWindow(hButton, TRUE);
+
+            g_currentTicker = buffer;
+            SetTimer(hwnd, ID_TIMER, 15000, NULL);
+        }
+        return 0;
+    }
+
+    case WM_TIMER: {
+        if (wParam == ID_TIMER && !g_currentTicker.empty()) {
+            // Re-run Python script for g_currentTicker
+            std::string command = "python scripts/main.py " + g_currentTicker;
+            system(command.c_str());
+
+            std::string csvPath = "data/" + g_currentTicker + ".csv";
+            auto rows = LoadCSV(csvPath);
+
+            std::ostringstream out;
+            for (const auto& row : rows) {
+                for (size_t i = 0; i < row.size(); i++) {
+                    out << row[i];
+                    if (i < row.size() - 1) out << " | ";
+                }
+                out << "\r\n";
+            }
+            SetWindowTextA(hTextDisplay, out.str().c_str());
+
+            // Update Price/Change labels
+            std::string price = "--", change = "--", dollarChange = "--";
+            for (const auto& row : rows) {
+                if (row.size() >= 2) {
+                    if (row[0] == "Price") price = row[1];
+                    else if (row[0] == "Change") change = row[1];
+                    else if (row[0] == "Dollar Change") dollarChange = row[1];
+                }
+            }
+            SetWindowTextA(hPriceLabel, ("Price ($): " + price).c_str());
+            SetWindowTextA(hChangeLabel, ("% Change: " + change).c_str());
+            SetWindowTextA(hDollarChangeLabel, ("$ Change: " + dollarChange).c_str());
         }
         return 0;
     }
 
     case WM_DESTROY:
+        KillTimer(hwnd, ID_TIMER);
         PostQuitMessage(0);
         return 0;
     }
