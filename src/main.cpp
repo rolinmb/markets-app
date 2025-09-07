@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 std::vector<std::string> SplitCSVLine(const std::string& line) {
     std::vector<std::string> result;
@@ -124,19 +125,30 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             char buffer[5] = {0};
             GetWindowTextA(GetDlgItem(hwnd, ID_EDITBOX), buffer, 5);
 
-            bool valid = true;
-            for (int i = 0; buffer[i] != '\0'; i++) {
-                if (!isalpha((unsigned char)buffer[i])) {
-                    valid = false;
-                    break;
-                }
-            }
+            // Copy buffer to string
+            std::string ticker(buffer);
 
-            if (buffer[0] == '\0') {
+            // Trim leading whitespace
+            ticker.erase(ticker.begin(), std::find_if(ticker.begin(), ticker.end(), [](unsigned char ch) {
+                return !std::isspace(ch);
+            }));
+
+            // Trim trailing whitespace
+            ticker.erase(std::find_if(ticker.rbegin(), ticker.rend(), [](unsigned char ch) {
+                return !std::isspace(ch);
+            }).base(), ticker.end());
+
+            // Check for empty ticker
+            if (ticker.empty()) {
                 MessageBoxA(hwnd, "You must enter at least one character", "Invalid Input", MB_OK | MB_ICONERROR);
                 EnableWindow(hButton, TRUE);
                 break;
             }
+
+            // Check that all characters are letters
+            bool valid = std::all_of(ticker.begin(), ticker.end(), [](unsigned char ch) {
+                return std::isalpha(ch);
+            });
 
             if (!valid) {
                 MessageBoxA(hwnd, "Ticker must only contain letters A-Z", "Invalid Input", MB_OK | MB_ICONERROR);
@@ -146,10 +158,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
             // Run Python script
             std::string command = "python scripts/main.py ";
-            command += buffer;
+            command += ticker;
             system(command.c_str());
 
-            std::string csvPath = "data/" + std::string(buffer) + ".csv";
+            std::string csvPath = "data/" + std::string(ticker) + ".csv";
             auto rows = LoadCSV(csvPath);
 
             std::ostringstream out;
