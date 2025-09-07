@@ -1,6 +1,7 @@
-import sys
 import os
+import re
 import csv
+import sys
 import requests
 from bs4 import BeautifulSoup
 
@@ -15,11 +16,13 @@ HEADERS = {
 }
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
+    if len(sys.argv) == 2:
         ticker = sys.argv[1].upper()
         print(f"scripts/main.py :: Ticker received: {ticker}")
+
         url = f"{URLP}{ticker}"
         print("scripts/main.py :: Requesting Finviz.com for HTML content...")
+
         response = requests.get(url, headers=HEADERS)
         
         soup = BeautifulSoup(response.text, "html.parser")
@@ -46,6 +49,28 @@ if __name__ == "__main__":
             writer.writerows(pairs)
 
         print(f"scripts/main.py :: Data written to {csv_path}")
-        
+
+        quote = soup.find("strong", class_="quote-price_wrapper_price").get_text()
+        print(f"scripts/main.py :: Current {ticker} Quote: ${quote}/share")
+
+        # Find all spans
+        spans = soup.find_all("span", class_=[
+            "table-row", "w-full", "items-baseline",
+            "justify-end", "whitespace-nowrap",
+            "text-negative", "text-muted-2"
+        ])
+
+        dollar_change = spans[0].get_text(strip=True)
+        percent_change = spans[1].get_text(strip=True)
+
+        # Keep only numbers, sign, decimal, and percent
+        dollar_change_clean = re.search(r"[-+]?[\d.,]+", dollar_change)
+        percent_change_clean = re.search(r"[-+]?[\d.,]+%?", percent_change)
+
+        dollar_change = dollar_change_clean.group(0) if dollar_change_clean else dollar_change
+        percent_change = percent_change_clean.group(0) if percent_change_clean else percent_change
+
+        print(f"scripts/main.py :: Dollar Change: {dollar_change}")
+        print(f"scripts/main.py :: Percent Change: {percent_change}")
     else:
         print("scripts/main.py :: No ticker argument provided.")
