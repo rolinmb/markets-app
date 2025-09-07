@@ -53,8 +53,41 @@ HWND hDateTimeLabel;
 
 std::string g_currentTicker;
 
+HBRUSH hBrushBlack = CreateSolidBrush(RGB(0, 0, 0)); // Black
+COLORREF textColor = RGB(255, 255, 255); // White
+COLORREF changeColor = RGB(255, 255, 255); // default white
+COLORREF dollarChangeColor = RGB(255, 255, 255); // default white
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
+    case WM_CTLCOLORSTATIC: { // For static text labels
+        HDC hdc = (HDC)wParam;
+
+        if ((HWND)lParam == hChangeLabel) {
+            SetTextColor(hdc, changeColor);
+        } else if ((HWND)lParam == hDollarChangeLabel) {
+            SetTextColor(hdc, dollarChangeColor);
+        } else {
+            SetTextColor(hdc, textColor); // other static text
+        }
+
+        SetBkColor(hdc, RGB(0, 0, 0)); // black background
+        return (INT_PTR)hBrushBlack;
+    }
+    case WM_CTLCOLOREDIT: {  // For edit controls
+        HDC hdc = (HDC)wParam;
+        SetTextColor(hdc, textColor);     // White text
+        SetBkColor(hdc, RGB(0,0,0)); // black background
+        return (INT_PTR)hBrushBlack;
+    }
+    
+    case WM_ERASEBKGND: { // For the main window background
+        HDC hdc = (HDC)wParam;
+        RECT rc;
+        GetClientRect(hwnd, &rc);
+        FillRect(hdc, &rc, hBrushBlack);
+        return 1; // We've erased background
+    }
     case WM_CREATE: {
         // Create a static text label
         CreateWindowExA(
@@ -86,7 +119,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         hTextDisplay = CreateWindowExA(
             WS_EX_CLIENTEDGE, "EDIT", "",
             WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY,
-            200, 20, 250, 400, // x, y, width, height
+            225, 20, 250, 400,
             hwnd, NULL, GetModuleHandle(NULL), NULL
         );
 
@@ -195,9 +228,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 }
             }
 
+            changeColor = (change[0] == '-') ? RGB(255, 0, 0) : RGB(0, 255, 0); // red if negative, green if positive
+            dollarChangeColor = (dollarChange[0] == '-') ? RGB(255, 0, 0) : RGB(0, 255, 0);
+
             SetWindowTextA(hPriceLabel, ("Price ($): " + price).c_str());
             SetWindowTextA(hChangeLabel, ("% Change: " + change).c_str());
             SetWindowTextA(hDollarChangeLabel, ("$ Change: " + dollarChange).c_str());
+
+            InvalidateRect(hChangeLabel, NULL, TRUE);
+            InvalidateRect(hDollarChangeLabel, NULL, TRUE);
 
             EnableWindow(hButton, TRUE);
 
@@ -279,7 +318,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
         CLASS_NAME,
         "markets-app",
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 500, 500,
+        CW_USEDEFAULT, CW_USEDEFAULT, 777, 777,
         NULL, NULL, hInstance, NULL
     );
 
