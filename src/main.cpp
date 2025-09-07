@@ -9,11 +9,20 @@ std::string LoadCSV(const std::string& path) {
     if (!file.is_open()) {
         return "Error: Could not open CSV file.";
     }
+
     std::ostringstream ss;
     std::string line;
+
+    // Skip the first line (header row)
+    if (std::getline(file, line)) {
+        // do nothing, just discard it
+    }
+
+    // Now read the rest of the lines
     while (std::getline(file, line)) {
         ss << line << "\r\n";  // Windows-style newline
     }
+
     return ss.str();
 }
 
