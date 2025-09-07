@@ -29,29 +29,6 @@ if __name__ == "__main__":
         
         pairs = []
 
-        # Extract quote data
-        quote = soup.find("strong", class_="quote-price_wrapper_price").get_text()
-        pairs.append(["Current Quote", quote])
-
-        spans = soup.find_all("span", class_=[
-            "table-row", "w-full", "items-baseline",
-            "justify-end", "whitespace-nowrap",
-            "text-negative", "text-muted-2"
-        ])
-
-        dollar_change = spans[0].get_text(strip=True)
-        percent_change = spans[1].get_text(strip=True)
-
-        # Keep only numbers, sign, decimal, and percent
-        dollar_change_clean = re.search(r"[-+]?[\d.,]+", dollar_change)
-        percent_change_clean = re.search(r"[-+]?[\d.,]+%?", percent_change)
-
-        dollar_change = dollar_change_clean.group(0) if dollar_change_clean else dollar_change
-        percent_change = percent_change_clean.group(0) if percent_change_clean else percent_change
-
-        pairs.append(["Dollar Change", dollar_change])
-        pairs.append(["Percent Change", percent_change])
-
         table = soup.find("table", class_="js-snapshot-table snapshot-table2 screener_snapshot-table-body")
 
         if table:
@@ -63,6 +40,21 @@ if __name__ == "__main__":
                     value = cells[i+1] if i+1 < len(cells) else ""
                     pairs.append([label, value])
 
+        spans = soup.find_all("span", class_=[
+            "table-row", "w-full", "items-baseline",
+            "justify-end", "whitespace-nowrap",
+            "text-negative", "text-muted-2"
+        ])
+
+        if not spans:
+            print(f"scripts/main.py :: Ticker {ticker} is invalid.\n")
+            sys.exit()
+
+        dollar_change = spans[0].get_text(strip=True)
+        dollar_change_clean = re.search(r"[-+]?[\d.,]+", dollar_change) # Keep only numbers, sign, decimal, and percent
+        dollar_change = dollar_change_clean.group(0) if dollar_change_clean else dollar_change
+        pairs.append(["Dollar Change", dollar_change])
+
         # Ensure data directory exists
         os.makedirs("data", exist_ok=True)
         csv_path = os.path.join("data", f"{ticker}.csv")
@@ -70,9 +62,9 @@ if __name__ == "__main__":
         # Write Label/Value pairs
         with open(csv_path, mode="w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow(["Label", "Value"])  # header
+            writer.writerow(["Label", "Value"])
             writer.writerows(pairs)
 
-        print(f"scripts/main.py :: {ticker} data successfully written to {csv_path}")
+        print(f"scripts/main.py :: {ticker} data successfully written to {csv_path}\n")
     else:
-        print("scripts/main.py :: No ticker argument provided.")
+        print("scripts/main.py :: No ticker argument provided.\n")
