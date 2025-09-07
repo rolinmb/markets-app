@@ -154,13 +154,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             std::string price = "--", change = "--", dollarChange = "--";
             for (const auto& row : rows) {
                 if (row.size() >= 2) {
-                    if (row[0] == "Price") {
-                        price = row[1];
-                    } else if (row[0] == "Change") {
-                        change = row[1];
-                    } else if (row[0] == "Dollar Change") {
-                        dollarChange = row[1];
-                    }
+                    if (row[0] == "Price") price = row[1];
+                    else if (row[0] == "Change") change = row[1];
+                    else if (row[0] == "Dollar Change") dollarChange = row[1];
                 }
             }
 
@@ -204,6 +200,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     else if (row[0] == "Dollar Change") dollarChange = row[1];
                 }
             }
+            
             SetWindowTextA(hPriceLabel, ("Price ($): " + price).c_str());
             SetWindowTextA(hChangeLabel, ("% Change: " + change).c_str());
             SetWindowTextA(hDollarChangeLabel, ("$ Change: " + dollarChange).c_str());
@@ -216,7 +213,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         PostQuitMessage(0);
         return 0;
     }
-    
+
     return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 }
 
