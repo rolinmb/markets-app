@@ -1,10 +1,27 @@
 #include <windows.h>
 #include <string>
 #include <cstdlib>
+#include <fstream>
+#include <sstream>
+
+std::string LoadCSV(const std::string& path) {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        return "Error: Could not open CSV file.";
+    }
+    std::ostringstream ss;
+    std::string line;
+    while (std::getline(file, line)) {
+        ss << line << "\r\n";  // Windows-style newline
+    }
+    return ss.str();
+}
 
 // IDs for controls
 #define ID_EDITBOX 1
 #define ID_BUTTON  2
+
+HWND hTextDisplay;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
@@ -34,21 +51,27 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             0, "BUTTON", "Fetch Data", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
             50, 130, 100, 30, hwnd, (HMENU)ID_BUTTON, GetModuleHandle(NULL), NULL
         );
+
+        hTextDisplay = CreateWindowExA(
+            WS_EX_CLIENTEDGE, "EDIT", "",
+            WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY,
+            200, 20, 250, 400, // x, y, width, height
+            hwnd, NULL, GetModuleHandle(NULL), NULL
+        );
         return 0;
     }
 
     case WM_COMMAND: {
         if (LOWORD(wParam) == ID_BUTTON) {
-            HWND hButton = GetDlgItem(hwnd, ID_BUTTON);  // get button handle
-            EnableWindow(hButton, FALSE);                // disable button
+            HWND hButton = GetDlgItem(hwnd, ID_BUTTON);
+            EnableWindow(hButton, FALSE);
 
             char buffer[5] = {0};
             GetWindowTextA(GetDlgItem(hwnd, ID_EDITBOX), buffer, 5);
 
-            // Check if all characters are alphabetical
             bool valid = true;
             for (int i = 0; buffer[i] != '\0'; i++) {
-                if (!((buffer[i] >= 'A' && buffer[i] <= 'Z') || (buffer[i] >= 'a' && buffer[i] <= 'z'))) {
+                if (!isalpha((unsigned char)buffer[i])) {
                     valid = false;
                     break;
                 }
@@ -56,24 +79,26 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
             if (!valid) {
                 MessageBoxA(hwnd, "Ticker must only contain letters A-Z", "Invalid Input", MB_OK | MB_ICONERROR);
-                EnableWindow(hButton, TRUE); // re-enable button
+                EnableWindow(hButton, TRUE);
                 break;
             }
 
-            MessageBoxA(hwnd, buffer, "Executing python script to fetch data for:", MB_OK | MB_ICONEXCLAMATION);
-
-            // Run Python script (this is blocking because system() waits)
+            // Run Python script
             std::string command = "python scripts/main.py ";
             command += buffer;
             system(command.c_str());
 
-            MessageBoxA(hwnd, buffer, "Successfully executed python script and fetched data for:", MB_OK | MB_ICONINFORMATION);
+            // Load CSV content
+            std::string csvPath = "data/" + std::string(buffer) + ".csv";
+            std::string contents = LoadCSV(csvPath);
 
-            EnableWindow(hButton, TRUE); // re-enable button after script finishes
+            // Show in the scrollable text box
+            SetWindowTextA(hTextDisplay, contents.c_str());
+
+            EnableWindow(hButton, TRUE);
         }
         return 0;
     }
-
 
     case WM_DESTROY:
         PostQuitMessage(0);
