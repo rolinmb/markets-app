@@ -39,6 +39,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
     case WM_COMMAND: {
         if (LOWORD(wParam) == ID_BUTTON) {
+            HWND hButton = GetDlgItem(hwnd, ID_BUTTON);  // get button handle
+            EnableWindow(hButton, FALSE);                // disable button
+
             char buffer[5] = {0};
             GetWindowTextA(GetDlgItem(hwnd, ID_EDITBOX), buffer, 5);
 
@@ -53,15 +56,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
             if (!valid) {
                 MessageBoxA(hwnd, "Ticker must only contain letters A-Z", "Invalid Input", MB_OK | MB_ICONERROR);
+                EnableWindow(hButton, TRUE); // re-enable button
                 break;
             }
 
-            // Run Python script
+            // Run Python script (this is blocking because system() waits)
             std::string command = "python scripts/main.py ";
             command += buffer;
             system(command.c_str());
 
-            MessageBoxA(hwnd, buffer, "Executing python script to fetch data for:", MB_OK);
+            MessageBoxA(hwnd, buffer, "Executing python script to fetch data for:", MB_OK | MB_ICONINFORMATION);
+
+            EnableWindow(hButton, TRUE); // re-enable button after script finishes
         }
         return 0;
     }
@@ -78,7 +84,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
     const char CLASS_NAME[] = "markets-app";
 
     WNDCLASSA wc = {};
-    wc.lpfnWndProc = WindowProc;
+    wc.lpfnWndProc = WindowProc; // Register our window proceedure function
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
 
