@@ -43,11 +43,13 @@ std::vector<std::vector<std::string>> LoadCSV(const std::string& path) {
 #define ID_EDITBOX 1
 #define ID_BUTTON 2
 #define ID_TIMER 100
+#define ID_DATETIME_TIMER 101
 
 HWND hTextDisplay;
 HWND hPriceLabel;
 HWND hChangeLabel;
 HWND hDollarChangeLabel;
+HWND hDateTimeLabel;
 
 std::string g_currentTicker;
 
@@ -57,18 +59,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         // Create a static text label
         CreateWindowExA(
             0, "STATIC", "markets-app", WS_CHILD | WS_VISIBLE,
-            50, 20, 100, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
+            50, 20, 135, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
         );
 
         CreateWindowExA(
             0, "STATIC", "Enter a ticker (no more than 4 characters).", WS_CHILD | WS_VISIBLE,
-            50, 45, 100, 50, hwnd, NULL, GetModuleHandle(NULL), NULL
+            50, 45, 135, 50, hwnd, NULL, GetModuleHandle(NULL), NULL
         );
 
         // Create an Edit control (text box)
         HWND hEdit = CreateWindowExA(
             0, "EDIT", "SPY", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
-            50, 100, 100, 25, hwnd, (HMENU)ID_EDITBOX, GetModuleHandle(NULL), NULL
+            50, 100, 135, 25, hwnd, (HMENU)ID_EDITBOX, GetModuleHandle(NULL), NULL
         );
 
         // Limit to 4 characters
@@ -91,20 +93,27 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         // Price panel
         hPriceLabel = CreateWindowExA(
             0, "STATIC", "Price ($): --", WS_CHILD | WS_VISIBLE,
-            50, 170, 130, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
+            50, 170, 135, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
         );
 
         // Change % panel
         hChangeLabel = CreateWindowExA(
             0, "STATIC", "% Change: --", WS_CHILD | WS_VISIBLE,
-            50, 195, 130, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
+            50, 195, 135, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
         );
 
         // Dollar Change Panel
         hDollarChangeLabel = CreateWindowExA(
             0, "STATIC", "$ Change: --", WS_CHILD | WS_VISIBLE,
-            50, 220, 130, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
+            50, 220, 135, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
         );
+
+        hDateTimeLabel = CreateWindowExA(
+            0, "STATIC", "", WS_CHILD | WS_VISIBLE,
+            50, 250, 135, 20, hwnd, NULL, GetModuleHandle(NULL), NULL
+        );
+
+        SetTimer(hwnd, ID_DATETIME_TIMER, 1000, NULL);
 
         return 0;
     }
@@ -230,12 +239,24 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             SetWindowTextA(hPriceLabel, ("Price ($): " + price).c_str());
             SetWindowTextA(hChangeLabel, ("% Change: " + change).c_str());
             SetWindowTextA(hDollarChangeLabel, ("$ Change: " + dollarChange).c_str());
+        } else if (wParam == ID_DATETIME_TIMER) {
+            // Update date and time
+            SYSTEMTIME st;
+            GetLocalTime(&st);
+
+            char datetimeStr[100];
+            snprintf(datetimeStr, sizeof(datetimeStr), "%04d-%02d-%02d %02d:%02d:%02d",
+                st.wYear, st.wMonth, st.wDay,
+                st.wHour, st.wMinute, st.wSecond);
+
+            SetWindowTextA(hDateTimeLabel, datetimeStr);
         }
         return 0;
     }
 
     case WM_DESTROY:
         KillTimer(hwnd, ID_TIMER);
+        KillTimer(hwnd, ID_DATETIME_TIMER);
         PostQuitMessage(0);
         return 0;
     }
