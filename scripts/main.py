@@ -83,9 +83,10 @@ if __name__ == "__main__":
         time_series = data.get("Time Series (Daily)", {})
 
         if not time_series:
-            print("scripts/main.py :: No time series data found in AlphaVantage response.\n")
-            sys.exit(1)
+            print(f"scripts/main.py :: No {ticker} time series data found in AlphaVantage response.\n")
+            sys.exit()
 
+        print(f"scripts/main.py :: Successfully fetched time series data for {ticker}.")
         df = pd.DataFrame.from_dict(time_series, orient="index", dtype=float)
 
         # Columns are "1. open", "2. high", "3. low", "4. close", "5. volume"
@@ -112,6 +113,9 @@ if __name__ == "__main__":
         with Image.open(chart_path) as png:
             png = png.convert("RGB")
             png.save(bmp_path, format="BMP")
+
+        if os.path.exists(chart_path):
+            os.remove(chart_path)
 
         print(f"scripts/main.py :: Saved OHLC close price chart to {bmp_path}\n")
     else:
