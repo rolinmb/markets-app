@@ -83,12 +83,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         if (hChartBitmap) {
             HDC memDC = CreateCompatibleDC(hdc);
             HBITMAP oldBmp = (HBITMAP)SelectObject(memDC, hChartBitmap);
-            // 2:3 ratio display
-            int w = 300, h = 200;
-            BitBlt(hdc, 50, 333, w, h, memDC, 0, 0, SRCCOPY);
+
+            BITMAP bmp;
+            GetObject(hChartBitmap, sizeof(bmp), &bmp);
+
+            // Desired display size (e.g., keep rectangular proportions)
+            int targetW = 400; // or whatever you want
+            int targetH = 250;
+
+            // Scale from original -> target
+            StretchBlt(
+                hdc, 50, 400, targetW, targetH,  // destination rect
+                memDC, 0, 0, bmp.bmWidth, bmp.bmHeight, // source rect
+                SRCCOPY
+            );
+
             SelectObject(memDC, oldBmp);
             DeleteDC(memDC);
         }
+
         EndPaint(hwnd, &ps);
         return 0;
     }
@@ -101,7 +114,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
         CreateWindowExA(0, "BUTTON", "Fetch Data", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 50, 130, 100, 30, hwnd, (HMENU)ID_BUTTON, GetModuleHandle(NULL), NULL);
 
-        hTextDisplay = CreateWindowExA(WS_EX_CLIENTEDGE, "EDIT", "", WS_CHILD | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY, 225, 20, 250, 400, hwnd, NULL, GetModuleHandle(NULL), NULL);
+        hTextDisplay = CreateWindowExA(WS_EX_CLIENTEDGE, "EDIT", "", WS_CHILD | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY, 225, 20, 250, 300, hwnd, NULL, GetModuleHandle(NULL), NULL);
         hPriceLabel = CreateWindowExA(0, "STATIC", "Price ($): --", WS_CHILD | WS_VISIBLE, 50, 170, 135, 20, hwnd, NULL, GetModuleHandle(NULL), NULL);
         hChangeLabel = CreateWindowExA(0, "STATIC", "% Change: --", WS_CHILD | WS_VISIBLE, 50, 195, 135, 20, hwnd, NULL, GetModuleHandle(NULL), NULL);
         hDollarChangeLabel = CreateWindowExA(0, "STATIC", "$ Change: --", WS_CHILD | WS_VISIBLE, 50, 220, 135, 20, hwnd, NULL, GetModuleHandle(NULL), NULL);
@@ -223,7 +236,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
     wc.lpszClassName = CLASS_NAME;
     RegisterClassA(&wc);
 
-    HWND hwnd = CreateWindowExA(0, CLASS_NAME, "markets-app", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 777, 777, NULL, NULL, hInstance, NULL);
+    HWND hwnd = CreateWindowExA(0, CLASS_NAME, "markets-app", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 700, 700, NULL, NULL, hInstance, NULL);
     if (!hwnd) return 0;
 
     ShowWindow(hwnd, nCmdShow);
