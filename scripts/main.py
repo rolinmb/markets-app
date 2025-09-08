@@ -4,6 +4,7 @@ import re
 import csv
 import sys
 import requests
+from PIL import Image
 from bs4 import BeautifulSoup
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -102,10 +103,16 @@ if __name__ == "__main__":
 
         # Ensure img/ directory exists
         os.makedirs("img", exist_ok=True)
-        chart_path = os.path.join("img", f"{ticker}_close.bmp")
+        chart_path = os.path.join("img", f"{ticker}_close.png")
         plt.savefig(chart_path, dpi=150, bbox_inches="tight")
         plt.close()
 
-        print(f"scripts/main.py :: Saved OHLC close price chart to {chart_path}\n")
+        # Convert PNG to BMP
+        bmp_path = os.path.join("img", f"{ticker}_close.bmp")
+        with Image.open(chart_path) as png:
+            png = png.convert("RGB")
+            png.save(bmp_path, format="BMP")
+
+        print(f"scripts/main.py :: Saved OHLC close price chart to {bmp_path}\n")
     else:
         print("scripts/main.py :: No ticker argument provided.\n")

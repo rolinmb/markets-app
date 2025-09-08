@@ -50,7 +50,7 @@ void LoadChartBitmap(const std::string& ticker) {
         DeleteObject(hChartBitmap);
         hChartBitmap = nullptr;
     }
-    std::string bmpPath = "data/" + ticker + "_chart.bmp"; // Python should save BMP
+    std::string bmpPath = "img/" + ticker + "_close.bmp"; // Python should save BMP
     hChartBitmap = (HBITMAP)LoadImageA(NULL, bmpPath.c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 }
 
@@ -84,8 +84,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             HDC memDC = CreateCompatibleDC(hdc);
             HBITMAP oldBmp = (HBITMAP)SelectObject(memDC, hChartBitmap);
             // 2:3 ratio display
-            int w = 200, h = 300;
-            BitBlt(hdc, 500, 50, w, h, memDC, 0, 0, SRCCOPY);
+            int w = 300, h = 200;
+            BitBlt(hdc, 50, 333, w, h, memDC, 0, 0, SRCCOPY);
             SelectObject(memDC, oldBmp);
             DeleteDC(memDC);
         }
