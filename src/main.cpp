@@ -167,7 +167,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             char buffer[5] = {0};
             GetWindowTextA(GetDlgItem(hwnd, ID_EDITBOX), buffer, 5);
 
-            // Copy buffer to string
             std::string ticker(buffer);
 
             // Trim leading whitespace

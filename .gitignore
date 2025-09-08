@@ -2,4 +2,7 @@ src/main.exe
 src/main.o
 src/main
 data/*
+img/*
 .vscode
+scripts/avkey.py
+scripts/__pycache__
