@@ -71,7 +71,7 @@ if __name__ == "__main__":
             writer.writerow(["Label", "Value"])
             writer.writerows(pairs)
 
-        print(f"scripts/main.py :: {ticker} data successfully written to {csv_path}\n")
+        print(f"scripts/main.py :: {ticker} data successfully written to {csv_path}")
         response.close()
 
         # TODO: Use alphavantage and matplotlib to get ohlc data to create chart for windows app
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         time_series = data.get("Time Series (Daily)", {})
 
         if not time_series:
-            print("src/main.py :: No time series data found in AlphaVantage response.")
+            print("scripts/main.py :: No time series data found in AlphaVantage response.\n")
             sys.exit(1)
 
         df = pd.DataFrame.from_dict(time_series, orient="index", dtype=float)
@@ -102,10 +102,10 @@ if __name__ == "__main__":
 
         # Ensure img/ directory exists
         os.makedirs("img", exist_ok=True)
-        chart_path = os.path.join("img", f"{ticker}_ohlc.png")
+        chart_path = os.path.join("img", f"{ticker}_close.bmp")
         plt.savefig(chart_path, dpi=150, bbox_inches="tight")
         plt.close()
 
-        print(f"src/main.py :: Saved OHLC close price chart to {chart_path}")
+        print(f"scripts/main.py :: Saved OHLC close price chart to {chart_path}\n")
     else:
         print("scripts/main.py :: No ticker argument provided.\n")
