@@ -117,6 +117,6 @@ if __name__ == "__main__":
         if os.path.exists(chart_path):
             os.remove(chart_path)
 
-        print(f"scripts/main.py :: Saved OHLC close price chart to {bmp_path}\n")
+        print(f"scripts/main.py :: Saved {ticker} close price chart to {bmp_path}\n")
     else:
         print("scripts/main.py :: No ticker argument provided.\n")

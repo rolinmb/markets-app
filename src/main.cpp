@@ -21,8 +21,7 @@ std::vector<std::vector<std::string>> LoadCSV(const std::string& path) {
     std::vector<std::vector<std::string>> rows;
     if (!file.is_open()) return rows;
     std::string line;
-    // Skip header
-    std::getline(file, line);
+    std::getline(file, line); // Skip header
     while (std::getline(file, line)) {
         rows.push_back(SplitCSVLine(line));
     }
@@ -146,7 +145,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             for (const auto& row : rows) {
                 for (size_t i = 0; i < row.size(); i++) {
                     out << row[i];
-                    if (i < row.size() - 1) out << " | ";
+                    if (i < row.size() - 1) out << " :: ";
                 }
                 out << "\r\n";
             }
@@ -186,7 +185,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             for (const auto& row : rows) {
                 for (size_t i = 0; i < row.size(); i++) {
                     out << row[i];
-                    if (i < row.size() - 1) out << " | ";
+                    if (i < row.size() - 1) out << " :: ";
                 }
                 out << "\r\n";
             }
