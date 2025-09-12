@@ -1,4 +1,4 @@
-from avkey import AVKEY
+from consts import FVURL, HEADERS, AVURL1, AVURL2
 import os
 import re
 import csv
@@ -9,25 +9,13 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import matplotlib.pyplot as plt
 
-FVURL = "https://finviz.com/quote.ashx?t="
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/118.0.0.0 Safari/537.36",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Referer": "https://finviz.com/"
-}
-AVURL1 = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol="
-AVURL2 = "&apikey="+AVKEY
-
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         ticker = sys.argv[1].upper()
-        print(f"scripts/main.py :: Ticker {ticker} query starting...")
+        print(f"scripts/equities.py :: Ticker {ticker} query starting...")
 
         fvurl = f"{FVURL}{ticker}"
-        print(f"scripts/main.py :: Requesting Finviz.com for {ticker}'s HTML content...")
+        print(f"scripts/equities.py :: Requesting Finviz.com for {ticker}'s HTML content...")
         
         # Use requests and BeautifulSoup to get the tabular data
         response = requests.get(fvurl, headers=HEADERS)
@@ -54,7 +42,7 @@ if __name__ == "__main__":
         ])
 
         if not spans:
-            print(f"scripts/main.py :: Ticker {ticker} is invalid.\n")
+            print(f"scripts/equities.py :: Ticker {ticker} is invalid.\n")
             sys.exit()
 
         dollar_change = spans[0].get_text(strip=True)
@@ -72,10 +60,9 @@ if __name__ == "__main__":
             writer.writerow(["Label", "Value"])
             writer.writerows(pairs)
 
-        print(f"scripts/main.py :: {ticker} data successfully written to {csv_path}")
+        print(f"scripts/equities.py :: {ticker} data successfully written to {csv_path}")
         response.close()
 
-        # TODO: Use alphavantage and matplotlib to get ohlc data to create chart for windows app
         avurl = f"{AVURL1}{ticker}{AVURL2}"
 
         response = requests.get(avurl)
@@ -83,10 +70,10 @@ if __name__ == "__main__":
         time_series = data.get("Time Series (Daily)", {})
 
         if not time_series:
-            print(f"scripts/main.py :: No {ticker} time series data found in AlphaVantage response.\n")
+            print(f"scripts/equities.py :: No {ticker} time series data found in AlphaVantage response.\n")
             sys.exit()
 
-        print(f"scripts/main.py :: Successfully fetched time series data for {ticker}.")
+        print(f"scripts/equities.py :: Successfully fetched time series data for {ticker}.")
         df = pd.DataFrame.from_dict(time_series, orient="index", dtype=float)
 
         # Columns are "1. open", "2. high", "3. low", "4. close", "5. volume"
@@ -117,6 +104,6 @@ if __name__ == "__main__":
         if os.path.exists(chart_path):
             os.remove(chart_path)
 
-        print(f"scripts/main.py :: Saved {ticker} close price chart to {bmp_path}\n")
+        print(f"scripts/equities.py :: Saved {ticker} close price chart to {bmp_path}\n")
     else:
-        print("scripts/main.py :: No ticker argument provided.\n")
+        print("scripts/equities.py :: No equity ticker argument provided.\n")
