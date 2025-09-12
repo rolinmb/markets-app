@@ -106,7 +106,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
         hPriceLabel = CreateWindowExA(0, "STATIC", "Price: --",
             WS_CHILD | WS_VISIBLE, 50, 170, 200, 30, hwnd, NULL, GetModuleHandle(NULL), NULL);
-        hChangeLabel = CreateWindowExA(0, "STATIC", "% Change: --",
+        hChangeLabel = CreateWindowExA(0, "STATIC", "Change: --",
             WS_CHILD | WS_VISIBLE, 50, 205, 200, 30, hwnd, NULL, GetModuleHandle(NULL), NULL);
         hDollarChangeLabel = CreateWindowExA(0, "STATIC", "$ Change: --",
             WS_CHILD | WS_VISIBLE, 50, 240, 200, 30, hwnd, NULL, GetModuleHandle(NULL), NULL);
@@ -143,7 +143,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             if (g_isEquitiesMode) {
                 GetWindowTextA(GetDlgItem(hwnd, ID_EDITBOX), buffer, 5); // limit stock tickers
             } else {
-                GetWindowTextA(GetDlgItem(hwnd, ID_EDITBOX), buffer, sizeof(buffer));
+                GetWindowTextA(GetDlgItem(hwnd, ID_EDITBOX), buffer, 16);
             }
 
             std::string asset(buffer);
@@ -173,9 +173,23 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
             system(command.c_str());
 
+            SetWindowTextA(hTextDisplay, "");
+            SetWindowTextA(hPriceLabel, "Price: --");
+            SetWindowTextA(hChangeLabel, "% Change: --");
+            SetWindowTextA(hDollarChangeLabel, "$ Change: --");
+
             // Load CSV as before
             std::string csvPath = "data/" + asset + ".csv";
             auto rows = LoadCSV(csvPath);
+
+            if (rows.empty()) {
+                MessageBoxA(hwnd, "Failed to fetch data for this asset. Check if it exists.", "Error", MB_OK | MB_ICONERROR);
+                g_currentAsset.clear();  // Important!
+                return 0;
+            }
+
+            g_currentAsset = asset; // only now
+
             std::ostringstream out;
             for (const auto& row : rows) {
                 for (size_t i = 0; i < row.size(); i++) {
@@ -190,20 +204,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             for (const auto& row : rows) {
                 if (row.size()>=2) {
                     if (row[0]=="Price") price=row[1];
-                    else if (row[0]=="% Change (24hrs)" || row[0]=="% Change") change=row[1];
-                    else if (row[0]=="Dollar Change (24hrs)") dollarChange=row[1];
+                    else if (row[0]=="Change" || row[0]=="% Change (24hrs)") change=row[1];
+                    else if (row[0]=="$ Change" || row[0]=="$ Change (24hrs)") dollarChange=row[1];
                 }
             }
             changeColor = (change[0]=='-')?RGB(255,0,0):RGB(0,255,0);
             dollarChangeColor = (dollarChange[0]=='-')?RGB(255,0,0):RGB(0,255,0);
-            SetWindowTextA(hPriceLabel, ("Price ($): "+price).c_str());
-            if (g_isEquitiesMode) {
-                SetWindowTextA(hChangeLabel, ("% Change: "+change).c_str());
-                SetWindowTextA(hDollarChangeLabel, ("$ Change: "+dollarChange).c_str());
-            } else {
-                SetWindowTextA(hChangeLabel, ("% Change (24hrs): "+change).c_str());
-                SetWindowTextA(hDollarChangeLabel, ("$ Change (24hrs): "+dollarChange).c_str());
-            }            
+            SetWindowTextA(hPriceLabel, ("Price: "+price).c_str());
+            SetWindowTextA(hChangeLabel, ("% Change: " + change).c_str());
+            SetWindowTextA(hDollarChangeLabel, ("$ Change: " + dollarChange).c_str());
 
             g_currentAsset = asset;
             SetTimer(hwnd, ID_TIMER, 15000, NULL);
@@ -219,6 +228,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 command = "python scripts/cryptos.py " + g_currentAsset;
 
             system(command.c_str());
+
+            SetWindowTextA(hTextDisplay, "");
+            SetWindowTextA(hPriceLabel, "Price: --");
+            SetWindowTextA(hChangeLabel, "% Change: --");
+            SetWindowTextA(hDollarChangeLabel, "$ Change: --");
 
             std::string csvPath = "data/" + g_currentAsset + ".csv";
             auto rows = LoadCSV(csvPath);
@@ -236,15 +250,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             for (const auto& row : rows) {
                 if (row.size()>=2) {
                     if (row[0]=="Price") price=row[1];
-                    else if (row[0]=="Change") change=row[1];
-                    else if (row[0]=="Dollar Change") dollarChange=row[1];
+                    else if (row[0]=="Change"  || row[0]=="% Change (24hrs)") change=row[1];
+                    else if (row[0]=="$ Change"  || row[0]=="$ Change (24hrs)") dollarChange=row[1];
                 }
             }
             changeColor = (change[0]=='-')?RGB(255,0,0):RGB(0,255,0);
             dollarChangeColor = (dollarChange[0]=='-')?RGB(255,0,0):RGB(0,255,0);
-            SetWindowTextA(hPriceLabel, ("Price ($): "+price).c_str());
-            SetWindowTextA(hChangeLabel, ("% Change: "+change).c_str());
-            SetWindowTextA(hDollarChangeLabel, ("$ Change: "+dollarChange).c_str());
+            SetWindowTextA(hPriceLabel, ("Price: "+price).c_str());
+            SetWindowTextA(hChangeLabel, ("% Change: " + change).c_str());
+            SetWindowTextA(hDollarChangeLabel, ("$ Change: " + dollarChange).c_str());
+
+            
         }
         else if (wParam == ID_DATETIME_TIMER) {
             SYSTEMTIME st; GetLocalTime(&st);

@@ -68,7 +68,7 @@ if __name__ == "__main__":
         pairs = [
             ["Market Cap.", marketcap], ["Volume (24hrs)", volume], ["FDV", fdv], ["Volume/Market Cap. (24hr)", volumecap],
             ["Total Supply", totalsupply], ["Max. Supply", maxiumumsupply], ["Circulating Supply", circulatingsupply],
-            ["Price", price], ["% Change (24hrs)", percentchange], ["Dollar Change (24hrs)", dollarchange], ["Symbol", crypto_symbol]
+            ["Price", price], ["% Change (24hrs)", percentchange], ["$ Change (24hrs)", dollarchange], ["Symbol", crypto_symbol]
         ]
 
         # Ensure data directory exists

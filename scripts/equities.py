@@ -48,7 +48,7 @@ if __name__ == "__main__":
         dollar_change = spans[0].get_text(strip=True)
         dollar_change_clean = re.search(r"[-+]?[\d.,]+", dollar_change) # Keep only numbers, sign, decimal, and percent
         dollar_change = dollar_change_clean.group(0) if dollar_change_clean else dollar_change
-        pairs.append(["Dollar Change", dollar_change])
+        pairs.append(["$ Change", dollar_change])
 
         # Ensure data directory exists
         os.makedirs("data", exist_ok=True)
