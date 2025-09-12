@@ -17,7 +17,6 @@ if __name__ == "__main__":
         fvurl = f"{FVURL}{ticker}"
         print(f"scripts/equities.py :: Requesting Finviz.com for {ticker}'s HTML content...")
         
-        # Use requests and BeautifulSoup to get the tabular data
         response = requests.get(fvurl, headers=HEADERS)
         
         soup = BeautifulSoup(response.text, "html.parser")

@@ -17,7 +17,6 @@ if __name__ == "__main__":
         cmcurl = f"{CMCURL}{crypto}"
         print(f"scripts/cryptos.py :: Requesting Coinmarketcap.com for {crypto}'s HTML content...")
         
-        # Use requests and BeautifulSoup to get the tabular data
         response = requests.get(cmcurl, headers=HEADERS)
         
         soup = BeautifulSoup(response.text, "html.parser")
