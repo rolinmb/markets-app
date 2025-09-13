@@ -49,11 +49,9 @@ if __name__ == "__main__":
         dollar_change = dollar_change_clean.group(0) if dollar_change_clean else dollar_change
         pairs.append(["$ Change", dollar_change])
 
-        # Ensure data directory exists
         os.makedirs("data", exist_ok=True)
         csv_path = os.path.join("data", f"{ticker}.csv")
 
-        # Write Label/Value pairs
         with open(csv_path, mode="w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["Label", "Value"])
@@ -79,7 +77,6 @@ if __name__ == "__main__":
         df.index = pd.to_datetime(df.index)  # Convert index to datetime
         df.sort_index(inplace=True)  # Ensure ascending by date
 
-        # Plot Close price
         plt.figure(figsize=(10, 6))
         plt.plot(df.index, df["4. close"], label="Close Price")
         plt.title(f"{ticker} Daily Close Prices")
@@ -88,13 +85,11 @@ if __name__ == "__main__":
         plt.legend()
         plt.grid(True)
 
-        # Ensure img/ directory exists
         os.makedirs("img", exist_ok=True)
         chart_path = os.path.join("img", f"{ticker}_close.png")
         plt.savefig(chart_path, dpi=150, bbox_inches="tight")
         plt.close()
 
-        # Convert PNG to BMP
         bmp_path = os.path.join("img", f"{ticker}_close.bmp")
         with Image.open(chart_path) as png:
             png = png.convert("RGB")

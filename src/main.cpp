@@ -114,7 +114,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
         hTextDisplay = CreateWindowExA(WS_EX_CLIENTEDGE,"EDIT","",
             WS_CHILD|WS_VISIBLE|ES_LEFT|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY,
-            300,20,250,200,hwnd,NULL,GetModuleHandle(NULL),NULL);
+            300,20,300,200,hwnd,NULL,GetModuleHandle(NULL),NULL);
 
         hPriceLabel = CreateWindowExA(0,"STATIC","Price: --",WS_CHILD|WS_VISIBLE,50,170,200,30,hwnd,NULL,GetModuleHandle(NULL),NULL);
         hChangeLabel = CreateWindowExA(0,"STATIC","Change: --",WS_CHILD|WS_VISIBLE,50,205,200,30,hwnd,NULL,GetModuleHandle(NULL),NULL);

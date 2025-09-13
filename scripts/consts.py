@@ -2,7 +2,8 @@ from avkey import AVKEY
 
 FVURL = "https://finviz.com/quote.ashx?t="
 CMCURL = "https://coinmarketcap.com/currencies/"
-FXURL = "https://www.bloomberg.com/markets/currencies"
+FXURL1 = "https://finance.yahoo.com/quote/"
+FXURL2 = "=X/"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "

@@ -1,4 +1,4 @@
-from consts import FXURL, HEADERS, AVURL2, AVURL5, AVURL6
+from consts import FXURL1, FXURL2, HEADERS, AVURL2, AVURL5, AVURL6
 import os
 import re
 import csv
@@ -14,35 +14,51 @@ if __name__ == "__main__":
         fromcurrency = sys.argv[1][0:3].lower()
         tocurrency = sys.argv[1][3:].lower()
 
-        print(f"scripts/cryptos.py :: {fromcurrency}/{tocurrency} query starting...")
+        print(f"scripts/forex.py :: {fromcurrency}/{tocurrency} query starting...")
 
-        print(f"scripts/cryptos.py :: Requesting x-rates.com for {fromcurrency}:{tocurrency}'s HTML content...")
+        fxurl = FXURL1+fromcurrency+tocurrency+FXURL2
+        print(f"scripts/forex.py :: Requesting finance.yahoo.com for {fromcurrency}/{tocurrency}'s HTML content...")
 
-        response = requests.get(cmcurl, headers=HEADERS)
+        response = requests.get(fxurl, headers=HEADERS)
 
         soup = BeautifulSoup(response.text, "html.parser")
+        '''
+        lilist = soup.findAll("li", class_="yf-1qull9i")
 
-        table = soup.find("table", "data-table")
+        for li in lilist:
+            print(li.text+"\n")
+        '''
+        price_span = soup.find("span", class_="yf-ipw1h0 base")
+        price = price_span.text if price_span else "--"
 
-        if not table:
-        print("Could not find table with class 'data-table'")
-        sys.exit(1)
+        dollar_span = soup.find("span", attrs={"data-testid": "qsp-price-change"})
+        dollarchange = dollar_span.text if dollar_span else "--"
 
-        rows = table.find_all("tr")
-        data = []
+        percentchange = "--"
+        if dollar_span:
+            sibling = dollar_span.find_next("span")
+            if sibling:
+                percentchange = sibling.text
 
-        headers = [th.get_text(strip=True) for th in rows[0].find_all("th")]
+        percentchange = re.sub(r"[()]", "", percentchange)  
+        print("Price:", price)
+        print("Dollar change:", dollarchange)
+        print("Percent change:", percentchange)
 
-        for tr in rows[1:]:
-        cols = tr.find_all("td")
-        if len(cols) != len(headers):
-            continue
-        row = [td.get_text(strip=True) for td in cols]
-        data.append(row)
+        pairs = [
+            ["Symbol", f"{fromcurrency}{tocurrency}"], ["Price", price],
+            ["Change", percentchange], ["$ Change", dollarchange]
+        ]
 
-        df = pd.DataFrame(data, columns=headers)
-        print(df)
+        # Ensure data directory exists
+        os.makedirs("data", exist_ok=True)
+        csv_path = os.path.join("data", f"{fromcurrency}{tocurrency}.csv")
 
-        df.to_csv(f"data/{fromcurrency}{tocurrency}.csv", index=False)
+        # Write Label/Value pairs
+        with open(csv_path, mode="w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Label", "Value"])
+            writer.writerows(pairs)
 
-        print(f"scripts/cryptos.py :: {fromcurrency}/{tocurrency} data successfully written to data/{fromcurrency}{tocurrency}.csv")
+        print(f"scripts/cryptos.py :: {fromcurrency}{tocurrency} data successfully written to {csv_path}")
+        response.close()
