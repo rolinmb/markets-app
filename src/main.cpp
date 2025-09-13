@@ -69,6 +69,7 @@ std::vector<std::vector<std::string>> LoadCSV(const std::string& path) {
 #define ID_MODE_BUTTON 3
 #define ID_TIMER 100
 #define ID_DATETIME_TIMER 101
+#define ID_BG_TIMER 102
 
 // ---------------- Globals ----------------
 HWND hTextDisplay, hPriceLabel, hChangeLabel, hDollarChangeLabel, hDateTimeLabel, hModeLabel, hInfoLabel, hAppLabel;
@@ -79,6 +80,20 @@ HBRUSH hBrushBlack = CreateSolidBrush(RGB(0,0,0));
 COLORREF textColor = RGB(255,255,255);
 COLORREF changeColor = RGB(255,255,255);
 COLORREF dollarChangeColor = RGB(255,255,255);
+
+COLORREF g_colors[3] = { RGB(200,220,255), RGB(220,255,200), RGB(255,220,240) };
+int g_currentIndex = 0;     // from color
+int g_nextIndex = 1;        // to color
+double g_t = 0.0;           // interpolation factor [0..1]
+
+COLORREF LerpColor(COLORREF c1, COLORREF c2, double t) {
+    int r1 = GetRValue(c1), g1 = GetGValue(c1), b1 = GetBValue(c1);
+    int r2 = GetRValue(c2), g2 = GetGValue(c2), b2 = GetBValue(c2);
+    int r = (int)(r1 + (r2 - r1) * t);
+    int g = (int)(g1 + (g2 - g1) * t);
+    int b = (int)(b1 + (b2 - b1) * t);
+    return RGB(r, g, b);
+}
 
 // ---------------- Modes ----------------
 enum class AssetMode { Equities, Crypto, Forex };
@@ -122,8 +137,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     }
     case WM_ERASEBKGND: {
         HDC hdc = (HDC)wParam;
-        RECT rc; GetClientRect(hwnd,&rc);
-        FillRect(hdc,&rc,hBrushBlack);
+        RECT rc; GetClientRect(hwnd, &rc);
+
+        COLORREF bg = LerpColor(g_colors[g_currentIndex], g_colors[g_nextIndex], g_t);
+        HBRUSH hBrush = CreateSolidBrush(bg);
+        FillRect(hdc, &rc, hBrush);
+        DeleteObject(hBrush);
+
         return 1;
     }
     case WM_CREATE: {
@@ -140,14 +160,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
         CreateWindowExA(0,"BUTTON","Fetch Data",
             WS_CHILD|WS_VISIBLE|BS_DEFPUSHBUTTON,
-            50,140,100,30,hwnd,(HMENU)ID_BUTTON,GetModuleHandle(NULL),NULL);
+            50,135,100,30,hwnd,(HMENU)ID_BUTTON,GetModuleHandle(NULL),NULL);
 
         hTextDisplay = CreateWindowExA(WS_EX_CLIENTEDGE,"EDIT","",
             WS_CHILD|WS_VISIBLE|ES_LEFT|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY,
             300,20,300,200,hwnd,NULL,GetModuleHandle(NULL),NULL);
 
         hPriceLabel = CreateWindowExA(0,"STATIC","Price: --",WS_CHILD|WS_VISIBLE,50,170,200,30,hwnd,NULL,GetModuleHandle(NULL),NULL);
-        hChangeLabel = CreateWindowExA(0,"STATIC","Change: --",WS_CHILD|WS_VISIBLE,50,205,200,30,hwnd,NULL,GetModuleHandle(NULL),NULL);
+        hChangeLabel = CreateWindowExA(0,"STATIC","% Change: --",WS_CHILD|WS_VISIBLE,50,205,200,30,hwnd,NULL,GetModuleHandle(NULL),NULL);
         hDollarChangeLabel = CreateWindowExA(0,"STATIC","$ Change: --",WS_CHILD|WS_VISIBLE,50,240,200,30,hwnd,NULL,GetModuleHandle(NULL),NULL);
         hDateTimeLabel = CreateWindowExA(0,"STATIC","",WS_CHILD|WS_VISIBLE,50,300,200,20,hwnd,NULL,GetModuleHandle(NULL),NULL);
 
@@ -158,6 +178,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             WS_CHILD|WS_VISIBLE,500,260,200,30,hwnd,NULL,GetModuleHandle(NULL),NULL);
 
         SetTimer(hwnd, ID_DATETIME_TIMER, 1000, NULL);
+        SetTimer(hwnd, ID_BG_TIMER, 50, NULL);
         return 0;
     }
     case WM_COMMAND: {
@@ -189,7 +210,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     SetWindowTextA(hModeButton,"switch to equities mode");
                     SetWindowTextA(hModeLabel,"mode: forex");
                     SetWindowTextA(hAppLabel,"Foreign Exchange");
-                    SetWindowTextA(hInfoLabel,"Enter a currency pair (e.g., eurusd)");
+                    SetWindowTextA(hInfoLabel,"Enter a currency pair (e.g., eurusd, no more than 6 chars)");
                     break;
             }
 
@@ -268,7 +289,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         return 0;
     }
     case WM_TIMER: {
-        if(wParam == ID_TIMER && !g_currentAsset.empty()) {
+        /*if(wParam == ID_TIMER && !g_currentAsset.empty()) {
             std::string command;
             switch(g_currentMode) {
                 case AssetMode::Equities: command = "python scripts/equities.py " + g_currentAsset; break;
@@ -309,13 +330,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             SetWindowTextA(hPriceLabel,("Price: "+price).c_str());
             SetWindowTextA(hChangeLabel,("% Change: "+change).c_str());
             SetWindowTextA(hDollarChangeLabel,("$ Change: "+dollarChange).c_str());
-        }
-        else if(wParam == ID_DATETIME_TIMER) {
+        } else*/ if(wParam == ID_DATETIME_TIMER) {
             SYSTEMTIME st; GetLocalTime(&st);
             char datetimeStr[100];
             snprintf(datetimeStr,sizeof(datetimeStr),"%04d-%02d-%02d %02d:%02d:%02d",
                 st.wYear,st.wMonth,st.wDay,st.wHour,st.wMinute,st.wSecond);
             SetWindowTextA(hDateTimeLabel,datetimeStr);
+        } else if (wParam == ID_BG_TIMER) {
+            g_t += 0.01; // step progress
+            if (g_t >= 1.0) {
+                g_t = 0.0;
+                g_currentIndex = g_nextIndex;
+                g_nextIndex = (g_nextIndex + 1) % 3;
+            }
+            InvalidateRect(hwnd, NULL, TRUE); // force repaint
         }
         return 0;
     }
