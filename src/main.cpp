@@ -72,8 +72,37 @@ std::vector<std::vector<std::string>> LoadCSV(const std::string& path) {
 #define ID_BG_TIMER 102
 
 // ---------------- Globals ----------------
-HWND hTextDisplay, hPriceLabel, hChangeLabel, hDollarChangeLabel, hDateTimeLabel, hModeLabel, hInfoLabel, hAppLabel;
+HWND hTextDisplay, hPriceLabel, hChangeLabel, hDollarChangeLabel, hDateTimeLabel, hInfoLabel, hAppLabel;
 HWND hModeButton;
+HWND hImageView;
+HBITMAP hCurrentBmp = NULL;
+
+// ---------------- helper to load BMP ----------------
+void LoadAndShowBMP(HWND hwndParent, const std::string& asset) {
+    // cleanup old bmp
+    if (hCurrentBmp) {
+        DeleteObject(hCurrentBmp);
+        hCurrentBmp = NULL;
+    }
+
+    std::string bmpPath = "img/" + asset + ".bmp";
+    hCurrentBmp = (HBITMAP)LoadImageA(
+        NULL,
+        bmpPath.c_str(),
+        IMAGE_BITMAP,
+        0, 0,
+        LR_LOADFROMFILE | LR_CREATEDIBSECTION
+    );
+
+    if (!hCurrentBmp) {
+        SetWindowTextA(hInfoLabel, "No chart image found.");
+        return;
+    }
+
+    SendMessage(hImageView, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hCurrentBmp);
+    SetWindowPos(hImageView, NULL, 300, 240, 350, 350, SWP_NOZORDER | SWP_SHOWWINDOW);
+}
+
 std::string g_currentAsset;
 
 HBRUSH hBrushBlack = CreateSolidBrush(RGB(0,0,0));
@@ -173,9 +202,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
         hModeButton = CreateWindowExA(0,"BUTTON","switch to crypto mode",
             WS_CHILD|WS_VISIBLE|BS_DEFPUSHBUTTON,
-            500,300,175,30,hwnd,(HMENU)ID_MODE_BUTTON,GetModuleHandle(NULL),NULL);
-        hModeLabel = CreateWindowExA(0,"STATIC","mode: equities",
-            WS_CHILD|WS_VISIBLE,500,260,200,30,hwnd,NULL,GetModuleHandle(NULL),NULL);
+            50,400,175,30,hwnd,(HMENU)ID_MODE_BUTTON,GetModuleHandle(NULL),NULL);
+        
+        hImageView = CreateWindowExA(0, "STATIC", NULL,
+            WS_CHILD | WS_VISIBLE | SS_BITMAP,
+            300, 240, 350, 350,hwnd, NULL, GetModuleHandle(NULL), NULL
+        );
 
         SetTimer(hwnd, ID_DATETIME_TIMER, 1000, NULL);
         SetTimer(hwnd, ID_BG_TIMER, 50, NULL);
@@ -196,19 +228,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             switch(g_currentMode) {
                 case AssetMode::Equities:
                     SetWindowTextA(hModeButton,"switch to crypto mode");
-                    SetWindowTextA(hModeLabel,"mode: equities");
                     SetWindowTextA(hAppLabel,"Equities");
                     SetWindowTextA(hInfoLabel,"Enter an equity ticker symbol. (1-4 chars)");
                     break;
                 case AssetMode::Crypto:
                     SetWindowTextA(hModeButton,"switch to forex mode");
-                    SetWindowTextA(hModeLabel,"mode: crypto");
                     SetWindowTextA(hAppLabel,"Cryptocurrencies");
                     SetWindowTextA(hInfoLabel,"Enter a cryptocurrency name. (1-15 chars)");
                     break;
                 case AssetMode::Forex:
                     SetWindowTextA(hModeButton,"switch to equities mode");
-                    SetWindowTextA(hModeLabel,"mode: forex");
                     SetWindowTextA(hAppLabel,"Foreign Exchange");
                     SetWindowTextA(hInfoLabel,"Enter a currency pair (e.g., eurusd, no more than 6 chars)");
                     break;
@@ -247,6 +276,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             SetWindowTextA(hPriceLabel,"Price: --");
             SetWindowTextA(hChangeLabel,"% Change: --");
             SetWindowTextA(hDollarChangeLabel,"$ Change: --");
+
+            LoadAndShowBMP(hwnd, asset);
 
             std::string csvPath = "data/" + asset + ".csv";
             auto rows = LoadCSV(csvPath);

@@ -84,11 +84,11 @@ if __name__ == "__main__":
         plt.legend()
         plt.grid(True)
 
-        chart_path = os.path.join("img", f"{ticker}_close.png")
+        chart_path = os.path.join("img", f"{ticker}.png")
         plt.savefig(chart_path, dpi=150, bbox_inches="tight")
         plt.close()
 
-        bmp_path = os.path.join("img", f"{ticker}_close.bmp")
+        bmp_path = os.path.join("img", f"{ticker}.bmp")
         with Image.open(chart_path) as png:
             png = png.convert("RGB")
             png.save(bmp_path, format="BMP")
