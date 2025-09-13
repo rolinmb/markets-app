@@ -77,6 +77,18 @@ HWND hModeButton;
 HWND hImageView;
 HBITMAP hCurrentBmp = NULL;
 
+std::string g_currentAsset;
+
+HBRUSH hBrushBlack = CreateSolidBrush(RGB(0,0,0));
+COLORREF textColor = RGB(255,255,255);
+COLORREF changeColor = RGB(255,255,255);
+COLORREF dollarChangeColor = RGB(255,255,255);
+
+COLORREF g_colors[3] = { RGB(200,220,255), RGB(220,255,200), RGB(255,220,240) };
+int g_currentIndex = 0;     // from color
+int g_nextIndex = 1;        // to color
+double g_t = 0.0;           // interpolation factor [0..1]
+
 // ---------------- helper to load BMP ----------------
 void LoadAndShowBMP(HWND hwndParent, const std::string& asset) {
     // cleanup old bmp
@@ -102,18 +114,6 @@ void LoadAndShowBMP(HWND hwndParent, const std::string& asset) {
     SendMessage(hImageView, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hCurrentBmp);
     SetWindowPos(hImageView, NULL, 300, 240, 350, 350, SWP_NOZORDER | SWP_SHOWWINDOW);
 }
-
-std::string g_currentAsset;
-
-HBRUSH hBrushBlack = CreateSolidBrush(RGB(0,0,0));
-COLORREF textColor = RGB(255,255,255);
-COLORREF changeColor = RGB(255,255,255);
-COLORREF dollarChangeColor = RGB(255,255,255);
-
-COLORREF g_colors[3] = { RGB(200,220,255), RGB(220,255,200), RGB(255,220,240) };
-int g_currentIndex = 0;     // from color
-int g_nextIndex = 1;        // to color
-double g_t = 0.0;           // interpolation factor [0..1]
 
 COLORREF LerpColor(COLORREF c1, COLORREF c2, double t) {
     int r1 = GetRValue(c1), g1 = GetGValue(c1), b1 = GetBValue(c1);
