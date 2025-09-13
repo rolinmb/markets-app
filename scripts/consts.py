@@ -13,8 +13,8 @@ HEADERS = {
     "Referer": "https://finviz.com/"
 }
 AVURL1 = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol="
-AVURL2 = "&apikey=" + AVKEY
+AVURL2 = f"&apikey={AVKEY}"
 AVURL3 = "https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol="
-AVURL4 = "&market=USD" + AVURL2
+AVURL4 = "&market=USD"
 AVURL5 = "https://www.alphavantage.co/query?function=FX_DAILY&from_symbol="
 AVURL6 = "&to_symbol="

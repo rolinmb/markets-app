@@ -1,4 +1,4 @@
-from consts import CMCURL, HEADERS, AVURL3, AVURL4
+from consts import CMCURL, HEADERS, AVURL2, AVURL3, AVURL4
 import os
 import re
 import csv
@@ -70,7 +70,6 @@ if __name__ == "__main__":
             ["Price", price], ["% Change (24hrs)", percentchange], ["$ Change (24hrs)", dollarchange], ["Symbol", crypto_symbol]
         ]
 
-        os.makedirs("data", exist_ok=True)
         csv_path = os.path.join("data", f"{crypto}.csv")
 
         with open(csv_path, mode="w", newline="", encoding="utf-8") as f:
@@ -81,11 +80,11 @@ if __name__ == "__main__":
         print(f"scripts/cryptos.py :: {crypto} data successfully written to {csv_path}")
         response.close()
 
-        avurl = f"{AVURL3}{crypto}{AVURL4}"
+        avurl = f"{AVURL3}{crypto_symbol}{AVURL4}{AVURL2}"
 
         response = requests.get(avurl)
         data = response.json()
-        time_series = data.get("Time Series (Daily)", {})
+        time_series = data.get("Time Series (Digital Currency Daily)", {})
 
         if not time_series:
             print(f"scripts/cryptos.py :: No {crypto} time series data found in AlphaVantage response.\n")
@@ -94,8 +93,8 @@ if __name__ == "__main__":
         print(f"scripts/cryptos.py :: Successfully fetched time series data for {crypto}.")
         df = pd.DataFrame.from_dict(time_series, orient="index", dtype=float)
 
-        df.index = pd.to_datetime(df.index)  # Convert index to datetime
-        df.sort_index(inplace=True)  # Ensure ascending by date
+        df.index = pd.to_datetime(df.index)
+        df.sort_index(inplace=True)
 
         plt.figure(figsize=(10, 6))
         plt.plot(df.index, df["4. close"], label="Close Price")

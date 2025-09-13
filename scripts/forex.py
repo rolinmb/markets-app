@@ -22,12 +22,7 @@ if __name__ == "__main__":
         response = requests.get(fxurl, headers=HEADERS)
 
         soup = BeautifulSoup(response.text, "html.parser")
-        '''
-        lilist = soup.findAll("li", class_="yf-1qull9i")
-
-        for li in lilist:
-            print(li.text+"\n")
-        '''
+        
         price_span = soup.find("span", class_="yf-ipw1h0 base")
         price = price_span.text if price_span else "--"
 
@@ -47,11 +42,8 @@ if __name__ == "__main__":
             ["Change", percentchange], ["$ Change", dollarchange]
         ]
 
-        # Ensure data directory exists
-        os.makedirs("data", exist_ok=True)
         csv_path = os.path.join("data", f"{fromcurrency}{tocurrency}.csv")
 
-        # Write Label/Value pairs
         with open(csv_path, mode="w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["Label", "Value"])
@@ -64,7 +56,7 @@ if __name__ == "__main__":
 
         response = requests.get(avurl)
         data = response.json()
-        time_series = data.get("Time Series (Daily)", {})
+        time_series = data.get("Time Series FX (Daily)", {})
 
         if not time_series:
             print(f"scripts/forex.py :: No {fromcurrency}{tocurrency} time series data found in AlphaVantage response.\n")
@@ -73,22 +65,22 @@ if __name__ == "__main__":
         print(f"scripts/forex.py :: Successfully fetched time series data for {fromcurrency}{tocurrency}.")
         df = pd.DataFrame.from_dict(time_series, orient="index", dtype=float)
 
-        df.index = pd.to_datetime(df.index)  # Convert index to datetime
-        df.sort_index(inplace=True)  # Ensure ascending by date
+        df.index = pd.to_datetime(df.index)
+        df.sort_index(inplace=True)
 
         plt.figure(figsize=(10, 6))
         plt.plot(df.index, df["4. close"], label="Close Price")
-        plt.title(f"{ticker} Daily Close Prices")
+        plt.title(f"{fromcurrency}{tocurrency} Daily Close Prices")
         plt.xlabel("Date")
         plt.ylabel("Price ($)")
         plt.legend()
         plt.grid(True)
 
-        chart_path = os.path.join("img", f"{ticker}_close.png")
+        chart_path = os.path.join("img", f"{fromcurrency}{tocurrency}_close.png")
         plt.savefig(chart_path, dpi=150, bbox_inches="tight")
         plt.close()
 
-        bmp_path = os.path.join("img", f"{ticker}_close.bmp")
+        bmp_path = os.path.join("img", f"{fromcurrency}{tocurrency}_close.bmp")
         with Image.open(chart_path) as png:
             png = png.convert("RGB")
             png.save(bmp_path, format="BMP")
@@ -97,3 +89,5 @@ if __name__ == "__main__":
             os.remove(chart_path)
 
         print(f"scripts/forex.py :: Saved {fromcurrency}{tocurrency} close price chart to {bmp_path}\n")
+    else:
+        print(f"scripts/forex.py :: No exchange rate cross argument provided.\n")

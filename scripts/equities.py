@@ -49,7 +49,6 @@ if __name__ == "__main__":
         dollar_change = dollar_change_clean.group(0) if dollar_change_clean else dollar_change
         pairs.append(["$ Change", dollar_change])
 
-        os.makedirs("data", exist_ok=True)
         csv_path = os.path.join("data", f"{ticker}.csv")
 
         with open(csv_path, mode="w", newline="", encoding="utf-8") as f:
@@ -74,12 +73,12 @@ if __name__ == "__main__":
         df = pd.DataFrame.from_dict(time_series, orient="index", dtype=float)
 
         # Columns are "1. open", "2. high", "3. low", "4. close", "5. volume"
-        df.index = pd.to_datetime(df.index)  # Convert index to datetime
-        df.sort_index(inplace=True)  # Ensure ascending by date
+        df.index = pd.to_datetime(df.index)
+        df.sort_index(inplace=True)
 
         plt.figure(figsize=(10, 6))
         plt.plot(df.index, df["4. close"], label="Close Price")
-        plt.title(f"{ticker} Daily Close Prices")
+        plt.title(f"{{ticker}} Daily Close Prices")
         plt.xlabel("Date")
         plt.ylabel("Price ($)")
         plt.legend()
