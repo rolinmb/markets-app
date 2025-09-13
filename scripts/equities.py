@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
         if not time_series:
             print(f"scripts/equities.py :: No {ticker} time series data found in AlphaVantage response.\n")
-            sys.exit()
+            sys.exit(1)
 
         print(f"scripts/equities.py :: Successfully fetched time series data for {ticker}.")
         df = pd.DataFrame.from_dict(time_series, orient="index", dtype=float)
@@ -85,7 +85,6 @@ if __name__ == "__main__":
         plt.legend()
         plt.grid(True)
 
-        os.makedirs("img", exist_ok=True)
         chart_path = os.path.join("img", f"{ticker}_close.png")
         plt.savefig(chart_path, dpi=150, bbox_inches="tight")
         plt.close()

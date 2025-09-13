@@ -89,12 +89,11 @@ if __name__ == "__main__":
 
         if not time_series:
             print(f"scripts/cryptos.py :: No {crypto} time series data found in AlphaVantage response.\n")
-            sys.exit()
+            sys.exit(1)
 
         print(f"scripts/cryptos.py :: Successfully fetched time series data for {crypto}.")
         df = pd.DataFrame.from_dict(time_series, orient="index", dtype=float)
 
-        # Columns are "1. open", "2. high", "3. low", "4. close", "5. volume"
         df.index = pd.to_datetime(df.index)  # Convert index to datetime
         df.sort_index(inplace=True)  # Ensure ascending by date
 
@@ -106,7 +105,6 @@ if __name__ == "__main__":
         plt.legend()
         plt.grid(True)
 
-        os.makedirs("img", exist_ok=True)
         chart_path = os.path.join("img", f"{crypto}_close.png")
         plt.savefig(chart_path, dpi=150, bbox_inches="tight")
         plt.close()

@@ -41,9 +41,6 @@ if __name__ == "__main__":
                 percentchange = sibling.text
 
         percentchange = re.sub(r"[()]", "", percentchange)  
-        print("Price:", price)
-        print("Dollar change:", dollarchange)
-        print("Percent change:", percentchange)
 
         pairs = [
             ["Symbol", f"{fromcurrency}{tocurrency}"], ["Price", price],
@@ -60,5 +57,43 @@ if __name__ == "__main__":
             writer.writerow(["Label", "Value"])
             writer.writerows(pairs)
 
-        print(f"scripts/cryptos.py :: {fromcurrency}{tocurrency} data successfully written to {csv_path}")
+        print(f"scripts/forex.py :: {fromcurrency}{tocurrency} data successfully written to {csv_path}")
         response.close()
+
+        avurl = f"{AVURL5}{fromcurrency}{AVURL6}{tocurrency}{AVURL2}"
+
+        response = requests.get(avurl)
+        data = response.json()
+        time_series = data.get("Time Series (Daily)", {})
+
+        if not time_series:
+            print(f"scripts/forex.py :: No {fromcurrency}{tocurrency} time series data found in AlphaVantage response.\n")
+            sys.exit(1)
+
+        print(f"scripts/forex.py :: Successfully fetched time series data for {fromcurrency}{tocurrency}.")
+        df = pd.DataFrame.from_dict(time_series, orient="index", dtype=float)
+
+        df.index = pd.to_datetime(df.index)  # Convert index to datetime
+        df.sort_index(inplace=True)  # Ensure ascending by date
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(df.index, df["4. close"], label="Close Price")
+        plt.title(f"{ticker} Daily Close Prices")
+        plt.xlabel("Date")
+        plt.ylabel("Price ($)")
+        plt.legend()
+        plt.grid(True)
+
+        chart_path = os.path.join("img", f"{ticker}_close.png")
+        plt.savefig(chart_path, dpi=150, bbox_inches="tight")
+        plt.close()
+
+        bmp_path = os.path.join("img", f"{ticker}_close.bmp")
+        with Image.open(chart_path) as png:
+            png = png.convert("RGB")
+            png.save(bmp_path, format="BMP")
+
+        if os.path.exists(chart_path):
+            os.remove(chart_path)
+
+        print(f"scripts/forex.py :: Saved {fromcurrency}{tocurrency} close price chart to {bmp_path}\n")

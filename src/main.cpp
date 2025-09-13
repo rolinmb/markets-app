@@ -1,10 +1,40 @@
 #include <windows.h>
+#include <shlwapi.h>
 #include <string>
+#include <cstring>
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <iostream>
+
+void ClearDirectory(const std::string& dirPath) {
+    // Ensure directory exists
+    CreateDirectoryA(dirPath.c_str(), NULL);
+
+    std::string pattern = dirPath + "\\*";
+    WIN32_FIND_DATAA ffd;
+    HANDLE hFind = FindFirstFileA(pattern.c_str(), &ffd);
+
+    if (hFind == INVALID_HANDLE_VALUE) return;
+
+    do {
+        if (strcmp(ffd.cFileName, ".") == 0 || strcmp(ffd.cFileName, "..") == 0)
+            continue;
+
+        std::string filePath = dirPath + "\\" + ffd.cFileName;
+
+        if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            ClearDirectory(filePath);
+            RemoveDirectoryA(filePath.c_str());
+        } else {
+            DeleteFileA(filePath.c_str());
+        }
+    } while (FindNextFileA(hFind, &ffd));
+
+    FindClose(hFind);
+}
 
 // ---------------- CSV Handling ----------------
 std::vector<std::string> SplitCSVLine(const std::string& line) {
@@ -301,6 +331,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 // ---------------- Entry ----------------
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+    ClearDirectory("data");
+    ClearDirectory("img");
     const char CLASS_NAME[] = "markets-app";
     WNDCLASSA wc = {};
     wc.lpfnWndProc = WindowProc;
