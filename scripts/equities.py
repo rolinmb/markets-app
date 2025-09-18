@@ -76,7 +76,7 @@ if __name__ == "__main__":
         df.index = pd.to_datetime(df.index)
         df.sort_index(inplace=True)
 
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(10, 5))
         plt.plot(df.index, df["4. close"], label="Close Price")
         plt.title(f"{{ticker}} Daily Close Prices")
         plt.xlabel("Date")

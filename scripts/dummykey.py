@@ -1,1 +1,0 @@
-AVKEY = "DUMMYAVKEY"
