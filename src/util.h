@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 
+// ---------------- IDs ----------------
 #define ID_EDITBOX        1
 #define ID_BUTTON         2
 #define ID_MODE_BUTTON    3
@@ -10,18 +11,21 @@
 #define ID_DATETIME_TIMER 101
 #define ID_BG_TIMER       102
 
-// Control handles
+// ---------------- Mode enum ----------------
+enum class AssetMode { Equities, Crypto, Forex, Commodities };
+extern AssetMode g_currentMode;
+
+// ---------------- Globals ----------------
 extern HWND hTextDisplay, hPriceLabel, hChangeLabel, hDollarChangeLabel, hDateTimeLabel, hInfoLabel, hAppLabel;
 extern HWND hModeButton;
 extern HWND hImageView;
 extern HWND hComboBox;
 
-// GDI objects
 extern HBITMAP hCurrentBmp;
 extern HBRUSH hBrushBlack;
 
-// State
 extern std::string g_currentAsset;
+
 extern COLORREF textColor;
 extern COLORREF changeColor;
 extern COLORREF dollarChangeColor;
@@ -30,13 +34,10 @@ extern int g_currentIndex;
 extern int g_nextIndex;
 extern double g_t;
 
-// Mode enum (shared between files)
-enum class AssetMode { Equities, Crypto, Forex, Commodities };
-extern AssetMode g_currentMode;
-
-// Utility functions
+// ---------------- Functions ----------------
 AssetMode NextMode(AssetMode current);
 std::string ModeName(AssetMode mode);
+
 void ClearDirectory(const std::string& dirPath);
 std::vector<std::vector<std::string>> LoadCSV(const std::string& path);
 std::vector<std::string> SplitCSVLine(const std::string& line);

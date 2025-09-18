@@ -3,30 +3,27 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
+#include <cctype> 
 // ---------------- Globals ----------------
-extern HWND hTextDisplay, hPriceLabel, hChangeLabel, hDollarChangeLabel, hDateTimeLabel, hInfoLabel, hAppLabel;
-extern HWND hModeButton;
-extern HWND hImageView;
-extern HBITMAP hCurrentBmp = NULL;
-extern HWND hComboBox = NULL;
+HBITMAP hCurrentBmp = NULL;
+HWND hComboBox = NULL;
+HBRUSH hBrushBlack = CreateSolidBrush(RGB(0,0,0));
+COLORREF textColor = RGB(255,255,255);
+COLORREF changeColor = RGB(255,255,255);
+COLORREF dollarChangeColor = RGB(255,255,255);
+COLORREF g_colors[3] = { RGB(200,220,255), RGB(220,255,200), RGB(255,220,240) };
+int g_currentIndex = 0;
+int g_nextIndex = 1;
+double g_t = 0.0;
 
-extern std::string g_currentAsset;
+// other handles
+HWND hTextDisplay, hPriceLabel, hChangeLabel, hDollarChangeLabel, hDateTimeLabel, hInfoLabel, hAppLabel;
+HWND hModeButton;
+HWND hImageView;
 
-extern HBRUSH hBrushBlack = CreateSolidBrush(RGB(0,0,0));
-extern COLORREF textColor = RGB(255,255,255);
-extern COLORREF changeColor = RGB(255,255,255);
-extern COLORREF dollarChangeColor = RGB(255,255,255);
+std::string g_currentAsset;
 
-extern COLORREF g_colors[3] = { RGB(200,220,255), RGB(220,255,200), RGB(255,220,240) };
-extern int g_currentIndex = 0;
-extern int g_nextIndex = 1;
-extern double g_t = 0.0;
-
-extern HWND hImageView;
-extern HBITMAP hCurrentBmp;
-
-// ---------------- Modes ----------------
-enum class AssetMode { Equities, Crypto, Forex, Commodities };
 AssetMode g_currentMode = AssetMode::Equities;
 
 AssetMode NextMode(AssetMode current) {
@@ -148,11 +145,19 @@ std::string GetSelectedAsset(HWND hwnd) {
     }
 
     // trim whitespace
-    asset.erase(asset.begin(), std::find_if(asset.begin(), asset.end(),
-                  [](unsigned char c){ return !std::isspace(c); }));
-    asset.erase(std::find_if(asset.rbegin(), asset.rend(),
-                  [](unsigned char c){ return !std::isspace(c); }).base(), asset.end());
-    return asset;
+    asset.erase(
+        asset.begin(),
+        std::find_if(asset.begin(), asset.end(),
+                    [](unsigned char c){ return !std::isspace(c); })
+    );
+
+        // trim trailing whitespace
+    asset.erase(
+        std::find_if(asset.rbegin(), asset.rend(),
+                    [](unsigned char c){ return !std::isspace(c); }).base(),
+        asset.end()
+    );
+        return asset;
 }
 
 void FetchAndDisplay(HWND hwnd, const std::string& asset) {
