@@ -4,6 +4,9 @@
 #include <fstream>
 #include <sstream>
 
+extern HWND hImageView;
+extern HBITMAP hCurrentBmp;
+
 void ClearDirectory(const std::string& dirPath) {
     CreateDirectoryA(dirPath.c_str(), NULL);
     std::string pattern = dirPath + "\\*";
@@ -49,16 +52,6 @@ std::vector<std::vector<std::string>> LoadCSV(const std::string& path) {
     while (std::getline(file, line)) rows.push_back(SplitCSVLine(line));
     return rows;
 }
-
-// util.cpp
-#include "util.h"
-
-#include <windows.h>
-#include <string>
-#include "util.h"
-
-extern HWND hImageView;
-extern HBITMAP hCurrentBmp;
 
 void LoadAndShowBMP(HWND hwnd, const std::string& asset) {
     // Build path to BMP
