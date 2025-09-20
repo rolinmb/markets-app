@@ -23,7 +23,7 @@ def main():
         "apikey": AVKEY
     }
 
-    print("Fetching AlphaVantage API for", function)
+    print("scripts/commodities.py :: Fetching AlphaVantage API for", function)
 
     try:
         resp = requests.get(base_url, params=params, timeout=10)
@@ -123,7 +123,7 @@ def main():
             percent_val = f"{percent_change:.2f}" if percent_change not in ("", None) else ""
             writer.writerow(["Price", price_val])
             writer.writerow(["$ Change", dollar_val])
-            writer.writerow(["Change %", percent_val])
+            writer.writerow(["Change", percent_val])
     except Exception as e:
         print("scripts/commodities.py :: Error writing data CSV:", e)
         return
