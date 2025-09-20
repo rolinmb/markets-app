@@ -114,14 +114,16 @@ def main():
 
         except Exception as e:
             print("scripts/commodities.py :: Error creating chart:", e)
-    #TODO make csv with Label, Value for Price, % Change and Change
     try:
         with open(csv_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["Label", "Value"])
-            writer.writerow(["Price", current_price])
-            writer.writerow(["$ Change", dollar_change])
-            writer.writerow(["Change", percent_change])
+            price_val = f"{current_price:.2f}" if current_price is not None else ""
+            dollar_val = f"{dollar_change:.2f}" if dollar_change not in ("", None) else ""
+            percent_val = f"{percent_change:.2f}" if percent_change not in ("", None) else ""
+            writer.writerow(["Price", price_val])
+            writer.writerow(["$ Change", dollar_val])
+            writer.writerow(["Change %", percent_val])
     except Exception as e:
         print("scripts/commodities.py :: Error writing data CSV:", e)
         return
