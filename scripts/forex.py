@@ -70,23 +70,23 @@ if __name__ == "__main__":
 
         plt.figure(figsize=(10, 5))
         plt.plot(df.index, df["4. close"], label="Close Price")
-        plt.title(f"{fromcurrency}{tocurrency} Daily Close Prices")
+        plt.title(f"{fromcurrency}/{tocurrency} Daily Close Prices")
         plt.xlabel("Date")
         plt.ylabel("Price ($)")
         plt.legend()
         plt.grid(True)
 
-        chart_path = os.path.join("img", f"{fromcurrency}{tocurrency}.png")
-        plt.savefig(chart_path, dpi=150, bbox_inches="tight")
+        png_path = os.path.join("img", f"{fromcurrency}{tocurrency}.png")
+        plt.savefig(png_path, dpi=150, bbox_inches="tight")
         plt.close()
 
         bmp_path = os.path.join("img", f"{fromcurrency}{tocurrency}.bmp")
-        with Image.open(chart_path) as png:
-            png = png.convert("RGB")
-            png.save(bmp_path, format="BMP")
+        with Image.open(png_path) as png:
+            png = png.resize((400, 300), Image.LANCZOS)
+            png.convert("RGB").save(bmp_path, "BMP")
 
-        if os.path.exists(chart_path):
-            os.remove(chart_path)
+        if os.path.exists(png_path):
+            os.remove(png_path)
 
         print(f"scripts/forex.py :: Saved {fromcurrency}{tocurrency} close price chart to {bmp_path}\n")
     else:

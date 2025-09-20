@@ -83,7 +83,7 @@ def main():
             plt.plot(dates, values, color="blue", label=function)
             plt.xlabel("Date")
             plt.ylabel("Value")
-            plt.title(f"Time Series Data: {function}")
+            plt.title(f"{function} Monthly Close Price")
             plt.xticks(rotation=45)
             plt.legend()
             plt.tight_layout()
@@ -93,11 +93,13 @@ def main():
 
             plt.savefig(png_path, dpi=150)
             plt.close()
+
             print("scripts/commodities.py :: PNG chart saved to", png_path)
 
-            with Image.open(png_path) as img:
-                img = img.resize((400, 300), Image.LANCZOS)
-                img.convert("RGB").save(bmp_path, "BMP")
+            with Image.open(png_path) as png:
+                png = png.resize((400, 300), Image.LANCZOS)
+                png.convert("RGB").save(bmp_path, "BMP")
+
             print("scripts/commodities.py :: BMP image saved to", bmp_path)
 
             # Clean up
