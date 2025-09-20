@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <iostream>
 #include "util.h"
-
 // ---------------- Window Procedure ----------------
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch(uMsg) {
@@ -48,7 +47,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
         hComboBox = CreateWindowExA(0, "COMBOBOX", NULL,
             WS_CHILD | CBS_DROPDOWNLIST,
-            50, 110, 200, 200,
+            50, 110, 200, 300,
             hwnd, NULL, GetModuleHandle(NULL), NULL);
 
         const char* commodities[] = {"wti","brent","natural_gas","copper","aluminum","wheat","corn","cotton","sugar","coffee","all_commodities"};
@@ -159,7 +158,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     }
     return DefWindowProcA(hwnd,uMsg,wParam,lParam);
 }
-
 // ---------------- Entry ----------------
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     ClearDirectory("data");

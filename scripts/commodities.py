@@ -62,13 +62,22 @@ def main():
                     except ValueError:
                         values.append(None)
     except Exception as e:
-        print("scripts/commodities.py :: Error writing CSV:", e)
+        print("scripts/commodities.py :: Error writing time series CSV:", e)
         return
 
     print("scripts/commodities.py :: CSV saved to", csv_path)
 
-    # Plot chart if data exists
+    dollar_change = ""
+    percent_change = ""
     if dates and values:
+        if len(values) >= 2:
+            current_price = values[0]
+            previous_price = values[1]
+
+            dollar_change = current_price - previous_price
+            percent_change = (dollar_change / previous_price) * 100 if previous_price != 0 else None
+        else:
+            print("Not enough data points to calculate dollar and percent changes.")
         try:
             plt.figure(figsize=(10, 5))
             plt.plot(dates, values, color="blue", label=function)
@@ -105,7 +114,17 @@ def main():
 
         except Exception as e:
             print("scripts/commodities.py :: Error creating chart:", e)
-
+    #TODO make csv with Label, Value for Price, % Change and Change
+    try:
+        with open(csv_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Label", "Value"])
+            writer.writerow(["Price", current_price])
+            writer.writerow(["$ Change", dollar_change])
+            writer.writerow(["Change", percent_change])
+    except Exception as e:
+        print("scripts/commodities.py :: Error writing data CSV:", e)
+        return
 
 if __name__ == "__main__":
     # Make sure stdout is UTF-8 (Windows console fix)
