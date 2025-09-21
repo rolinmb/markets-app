@@ -144,8 +144,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 SetWindowTextA(hModeButton,"switch to equities mode");
                 SetWindowTextA(hAppLabel,"Options");
                 SetWindowTextA(hInfoLabel,"Enter an underlying ticker (1-4 chars)");
-                ShowWindow(GetDlgItem(hwnd, ID_EDITBOX), SW_HIDE);
-                ShowWindow(hComboBox, SW_SHOW);
+                ShowWindow(GetDlgItem(hwnd, ID_EDITBOX), SW_SHOW);
+                ShowWindow(hComboBox, SW_HIDE);
                 ShowWindow(hPriceLabel, SW_HIDE); // Hide price/change/dollar labels for this mode
                 ShowWindow(hChangeLabel, SW_HIDE);
                 ShowWindow(hDollarChangeLabel, SW_HIDE);

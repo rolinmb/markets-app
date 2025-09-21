@@ -76,7 +76,7 @@ if __name__ == "__main__":
             cbid = cask = cvol = c_oi = strike = 0
             pbid = pask = pvol = p_oi = 0
             cols = [c.text.strip() for c in row.find_elements(By.TAG_NAME, "td")]
-            if len(cols) != 11 or cols[6] == "-":
+            if len(cols) != 11:
                 continue
             clast = cols[0] if cols[0] != "-" else "0.00"
             cbid = cols[1]
@@ -93,14 +93,14 @@ if __name__ == "__main__":
             p = OptionContract(ticker, strike, exp_in_years[i], plast, pbid, pask, pvol, p_oi, False)
             calls.append(c)
             puts.append(p)
-            print(f"scripts/options.py :: Processed Call {c} and Put {p}")
             time.sleep(1.0)
+        print(f"scripts/options.py :: Processed Calls and Puts for expiration {formatted_expiration_dates[i]}")
 
         expiries.append(OptionExpiry(ticker, formatted_expiration_dates[i], exp_in_years[i], calls, puts))
     
     option_chain = OptionChain(ticker, expiries)
     for expiry in option_chain.expiries:  # For each expiry
-        for i in range(0, len(e.calls)):  # For each strike
+        for i in range(0, len(expiry.calls)):  # For each strike
             print(f"scripts/options.py :: Expiry {expiry.date} ::: "
                 f"Strike {expiry.calls[i].strike} | "
                 f"Calls {expiry.calls[i]} | "
