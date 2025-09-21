@@ -101,7 +101,7 @@ if __name__ == "__main__":
         expiries.append(OptionExpiry(ticker, formatted_expiration_dates[i], exp_in_years[i], calls, puts))
     
     option_chain = OptionChain(ticker, expiries)
-    csv_filename = f"{ticker}chain.csv"
+    csv_filename = f"data/{ticker}chain.csv"
     with open(csv_filename, mode="w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow([
