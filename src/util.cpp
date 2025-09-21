@@ -20,7 +20,6 @@ double g_t = 0.0;
 // other handles
 HWND hTextDisplay, hPriceLabel, hChangeLabel, hDollarChangeLabel, hDateTimeLabel, hInfoLabel, hAppLabel;
 HWND hModeButton;
-HWND hImageView;
 
 std::string g_currentAsset;
 
@@ -95,46 +94,6 @@ std::vector<std::vector<std::string>> LoadCSV(const std::string& path) {
     while (std::getline(file, line)) rows.push_back(SplitCSVLine(line));
     return rows;
 }
-
-void LoadAndShowBMP(HWND hwnd, const std::string& asset) {
-    std::string bmpPath;
-    if (g_currentMode == AssetMode::Options) {
-        std::string upperAsset = asset;
-        std::transform(upperAsset.begin(), upperAsset.end(), upperAsset.begin(),
-                    [](unsigned char c){ return std::toupper(c); });
-        bmpPath = "img/" + upperAsset + "chain.bmp";
-    }
-    else {
-        bmpPath = "img/" + asset + ".bmp";
-    }
-    // Free old bitmap
-    if (hCurrentBmp) {
-        DeleteObject(hCurrentBmp);
-        hCurrentBmp = NULL;
-    }
-    // Load new BMP
-    hCurrentBmp = (HBITMAP)LoadImageA(
-        NULL,
-        bmpPath.c_str(),
-        IMAGE_BITMAP,
-        0, 0,
-        LR_LOADFROMFILE
-    );
-    if (hCurrentBmp) {
-        SendMessage(hImageView, STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)hCurrentBmp);
-    } else {
-        MessageBoxA(hwnd, ("Failed to load BMP: " + bmpPath).c_str(), "Error", MB_OK | MB_ICONERROR);
-    }
-}
-
-COLORREF LerpColor(COLORREF c1, COLORREF c2, double t) {
-    int r1 = GetRValue(c1), g1 = GetGValue(c1), b1 = GetBValue(c1);
-    int r2 = GetRValue(c2), g2 = GetGValue(c2), b2 = GetBValue(c2);
-    int r = (int)(r1 + (r2 - r1) * t);
-    int g = (int)(g1 + (g2 - g1) * t);
-    int b = (int)(b1 + (b2 - b1) * t);
-    return RGB(r, g, b);
-}
 // ---------------- Fetch Helper ----------------
 std::string GetSelectedAsset(HWND hwnd) {
     std::string asset;
@@ -146,21 +105,22 @@ std::string GetSelectedAsset(HWND hwnd) {
             asset = buffer;
         }
     } else {
-        int maxLen = (g_currentMode == AssetMode::Equities) ? 5 :
-                     (g_currentMode == AssetMode::Crypto) ? 16 : 7;
-        char buffer[16] = {0};
-        GetWindowTextA(GetDlgItem(hwnd, ID_EDITBOX), buffer, maxLen);
+        int maxLen = (g_currentMode == AssetMode::Equities || g_currentMode == AssetMode::Options) ? 4 :
+            (g_currentMode == AssetMode::Crypto) ? 15 : 6; // logical max for validation
+        char buffer[64] = {0}; // big enough for safety
+        GetWindowTextA(GetDlgItem(hwnd, ID_EDITBOX), buffer, (int)sizeof(buffer)); // pass buffer size to GetWindowTextA
         asset = buffer;
-    }
+        // optionally enforce the logical maxLen (edit control already limits it but this is defensive)
+        if ((int)asset.size() > maxLen) asset = asset.substr(0, maxLen);
 
+    }
     // trim whitespace
     asset.erase(
         asset.begin(),
         std::find_if(asset.begin(), asset.end(),
                     [](unsigned char c){ return !std::isspace(c); })
     );
-
-        // trim trailing whitespace
+    // trim trailing whitespace
     asset.erase(
         std::find_if(asset.rbegin(), asset.rend(),
                     [](unsigned char c){ return !std::isspace(c); }).base(),
@@ -191,49 +151,43 @@ void FetchAndDisplay(HWND hwnd, const std::string& asset) {
     SetWindowTextA(hChangeLabel,"% Change: --");
     SetWindowTextA(hDollarChangeLabel,"$ Change: --");
 
-    LoadAndShowBMP(hwnd, asset);
-
     std::string csvPath;
-    if (g_currentMode == AssetMode::Options) {
-        csvPath = "data/" + asset + "chain.csv";
-    }
-    else {
+    if (g_currentMode != AssetMode::Options) {
         csvPath = "data/" + asset + ".csv";
-    }
-    auto rows = LoadCSV(csvPath);
-
-    if(rows.empty() && g_currentMode != AssetMode::Commodities) {
-        MessageBoxA(hwnd,"Failed to fetch data.","Error",MB_OK|MB_ICONERROR);
-        g_currentAsset.clear();
-        return;
-    }
-
-    g_currentAsset = asset;
-
-    std::ostringstream out;
-    for(const auto& row: rows) {
-        for(size_t i=0;i<row.size();i++) {
-            out << row[i];
-            if(i<row.size()-1) out << " :: ";
+        auto rows = LoadCSV(csvPath);
+        if(rows.empty() && g_currentMode != AssetMode::Commodities) {
+            MessageBoxA(hwnd,"Failed to fetch data.","Error",MB_OK|MB_ICONERROR);
+            g_currentAsset.clear();
+            return;
         }
-        out << "\r\n";
-    }
-    SetWindowTextA(hTextDisplay,out.str().c_str());
 
-    std::string price="--", change="--", dollarChange="--";
-    for(const auto& row: rows) {
-        if(row.size()>=2) {
-            if(row[0]=="Price") price=row[1];
-            else if(row[0]=="Change" || row[0]=="% Change (24hrs)") change=row[1];
-            else if(row[0]=="$ Change" || row[0]=="$ Change (24hrs)") dollarChange=row[1];
+        g_currentAsset = asset;
+
+        std::ostringstream out;
+        for(const auto& row: rows) {
+            for(size_t i=0;i<row.size();i++) {
+                out << row[i];
+                if(i<row.size()-1) out << " :: ";
+            }
+            out << "\r\n";
         }
+        SetWindowTextA(hTextDisplay,out.str().c_str());
+
+        std::string price="--", change="--", dollarChange="--";
+        for(const auto& row: rows) {
+            if(row.size()>=2) {
+                if(row[0]=="Price") price=row[1];
+                else if(row[0]=="Change" || row[0]=="% Change (24hrs)") change=row[1];
+                else if(row[0]=="$ Change" || row[0]=="$ Change (24hrs)") dollarChange=row[1];
+            }
+        }
+        changeColor = (change[0]=='-')?RGB(255,0,0):RGB(0,255,0);
+        dollarChangeColor = (dollarChange[0]=='-')?RGB(255,0,0):RGB(0,255,0);
+
+        SetWindowTextA(hPriceLabel,("Price: "+price).c_str());
+        SetWindowTextA(hChangeLabel,("% Change: "+change).c_str());
+        SetWindowTextA(hDollarChangeLabel,("$ Change: "+dollarChange).c_str());
+
+        SetTimer(hwnd, ID_TIMER, 15000, NULL);
     }
-    changeColor = (change[0]=='-')?RGB(255,0,0):RGB(0,255,0);
-    dollarChangeColor = (dollarChange[0]=='-')?RGB(255,0,0):RGB(0,255,0);
-
-    SetWindowTextA(hPriceLabel,("Price: "+price).c_str());
-    SetWindowTextA(hChangeLabel,("% Change: "+change).c_str());
-    SetWindowTextA(hDollarChangeLabel,("$ Change: "+dollarChange).c_str());
-
-    SetTimer(hwnd, ID_TIMER, 15000, NULL);
 }

@@ -18,7 +18,6 @@ extern AssetMode g_currentMode;
 // ---------------- Globals ----------------
 extern HWND hTextDisplay, hPriceLabel, hChangeLabel, hDollarChangeLabel, hDateTimeLabel, hInfoLabel, hAppLabel;
 extern HWND hModeButton;
-extern HWND hImageView;
 extern HWND hComboBox;
 
 extern HBITMAP hCurrentBmp;
@@ -43,5 +42,3 @@ std::vector<std::vector<std::string>> LoadCSV(const std::string& path);
 std::vector<std::string> SplitCSVLine(const std::string& line);
 std::string GetSelectedAsset(HWND hwnd);
 void FetchAndDisplay(HWND hwnd, const std::string& asset);
-void LoadAndShowBMP(HWND hwnd, const std::string& asset);
-COLORREF LerpColor(COLORREF c1, COLORREF c2, double t);
