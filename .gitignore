@@ -4,5 +4,5 @@ src/main
 data/*
 img/*
 .vscode
-scripts/avkey.py
+scripts/keys.py
 scripts/__pycache__

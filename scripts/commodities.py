@@ -1,4 +1,4 @@
-from avkey import AVKEY
+from keys import AVKEY
 import sys
 import os
 import json
