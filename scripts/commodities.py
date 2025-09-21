@@ -15,8 +15,6 @@ def main():
     function = sys.argv[1]
     base_url = "https://www.alphavantage.co/query"
 
-    print("Fetching AlphaVantage API", base_url)
-
     params = {
         "function": function,
         "interval": "monthly",
