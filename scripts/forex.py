@@ -4,9 +4,9 @@ import re
 import csv
 import sys
 import requests
+import pandas as pd
 from PIL import Image
 from bs4 import BeautifulSoup
-import pandas as pd
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":

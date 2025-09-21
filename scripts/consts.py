@@ -18,3 +18,4 @@ AVURL3 = "https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symb
 AVURL4 = "&market=USD"
 AVURL5 = "https://www.alphavantage.co/query?function=FX_DAILY&from_symbol="
 AVURL6 = "&to_symbol="
+BONDURL = "https://www.bloomberg.com/markets/rates-bonds/government-bonds/us"
