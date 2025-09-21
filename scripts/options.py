@@ -63,10 +63,10 @@ if __name__ == "__main__":
         if len(formatted_expiration_dates) != len(exp_in_years):
             print(f"scripts/options.py :: len(formatted_expiration_dates) != len(exp_in_years)")
             sys.exit(1)
-
-    print("scripts/options.py :: URLs Needed to query:")
-    for datestr in formatted_expiration_dates:
-        url = f"{OPTIONSURL3}{datestr}{OPTIONSURL4}"
+    time.sleep(1.0)
+    expiries = []
+    for i in range(0, len(exp_in_years)):
+        url = f"{OPTIONSURL3}{formatted_expiration_dates[i]}{OPTIONSURL4}"
         driver.get(url)
         calls = []
         puts = []
@@ -83,21 +83,25 @@ if __name__ == "__main__":
             cask = cols[2]
             cvol = cols[3]
             c_oi = cols[4]
-            strike = cols[6]
-            plast = cols[7]
-            pbid = cols[8]
-            pask = cols[9]
-            pvol = cols[10]
-            p_oi = cols[11]
-            calls.append(OptionContract(ticker, strike, exp_in_years[i], clast, cbid, cask, cvol, c_oi, True))
-            puts.append(OptionContract(ticker, strike, exp_in_years[i], pbid, pask, pvol, p_oi, False))
+            strike = cols[5]
+            plast = cols[6] if cols[6] != "-" else "0.00"
+            pbid = cols[7]
+            pask = cols[8]
+            pvol = cols[9]
+            p_oi = cols[10]
+            c = OptionContract(ticker, strike, exp_in_years[i], clast, cbid, cask, cvol, c_oi, True)
+            p = OptionContract(ticker, strike, exp_in_years[i], plast, pbid, pask, pvol, p_oi, False)
+            calls.append(c)
+            puts.append(p)
+            print(f"scripts/options.py :: Processed Call {c} and Put {p}")
+            time.sleep(1.0)
 
-        expiries.append(OptionExpiry(ticker, expirations[i], exp_in_years[i], calls, puts))
+        expiries.append(OptionExpiry(ticker, formatted_expiration_dates[i], exp_in_years[i], calls, puts))
     
     option_chain = OptionChain(ticker, expiries)
-    for e in option_chain.expiries:  # For each expiry
+    for expiry in option_chain.expiries:  # For each expiry
         for i in range(0, len(e.calls)):  # For each strike
-            print(f"scripts/options.py :: Expiry {e.date} ::: "
-                f"Call {e.calls[i]} | "
-                f"Strike {e.calls[i].strike} | "
-                f"Put {e.puts[i]}\n")
+            print(f"scripts/options.py :: Expiry {expiry.date} ::: "
+                f"Strike {expiry.calls[i].strike} | "
+                f"Calls {expiry.calls[i]} | "
+                f"Puts {expiry.puts[i]}\n")

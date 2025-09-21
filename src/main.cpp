@@ -84,7 +84,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             g_currentMode = NextMode(g_currentMode);
             g_currentAsset.clear();
 
-            int limit = (g_currentMode == AssetMode::Equities) ? 4 :
+            int limit = (g_currentMode == AssetMode::Equities || g_currentMode == AssetMode::Options) ? 4 :
                         (g_currentMode == AssetMode::Crypto)   ? 15 :
                         (g_currentMode == AssetMode::Forex)    ? 6 : 10;
             SendMessageA(GetDlgItem(hwnd, ID_EDITBOX), EM_SETLIMITTEXT, limit, 0);
@@ -131,13 +131,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 ShowWindow(hDollarChangeLabel, SW_SHOW);
                 break;
             case AssetMode::Bonds:
-                SetWindowTextA(hModeButton,"switch to equities mode");
+                SetWindowTextA(hModeButton,"switch to options mode");
                 SetWindowTextA(hAppLabel,"Bonds");
                 SetWindowTextA(hInfoLabel,"US Treasury Yield Curve");
                 ShowWindow(GetDlgItem(hwnd, ID_EDITBOX), SW_HIDE);
                 ShowWindow(hComboBox, SW_HIDE);
-                // Hide price/change/dollar labels
-                ShowWindow(hPriceLabel, SW_HIDE);
+                ShowWindow(hPriceLabel, SW_HIDE); // Hide price/change/dollar labels for this mode
+                ShowWindow(hChangeLabel, SW_HIDE);
+                ShowWindow(hDollarChangeLabel, SW_HIDE);
+                break;
+            case AssetMode::Options:
+                SetWindowTextA(hModeButton,"switch to equities mode");
+                SetWindowTextA(hAppLabel,"Options");
+                SetWindowTextA(hInfoLabel,"Enter an underlying ticker (1-4 chars)");
+                ShowWindow(GetDlgItem(hwnd, ID_EDITBOX), SW_HIDE);
+                ShowWindow(hComboBox, SW_SHOW);
+                ShowWindow(hPriceLabel, SW_HIDE); // Hide price/change/dollar labels for this mode
                 ShowWindow(hChangeLabel, SW_HIDE);
                 ShowWindow(hDollarChangeLabel, SW_HIDE);
                 break;

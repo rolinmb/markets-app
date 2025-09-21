@@ -13,14 +13,14 @@ class OptionContract:
 
     def __repr__(self):
         return (
-            f"OptionContract("        
+            f"OptionContract("
             f"underlying='{self.underlying}', "
-            f"symbol='{self.polygon_symbol}', "
             f"strike={self.strike}, "
-            f"type='{self.callorput}', "
-            f"price={self.price}, "
+            f"type='{"Call" if self.iscall else "Put"}', "
+            f"midprice={self.midprice}, "
             f"yte={self.yte:.4f})"
         )
+
 
 class OptionExpiry:
     def __init__(self, ticker, date, yte, calls=None, puts=None):
