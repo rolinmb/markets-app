@@ -1,5 +1,6 @@
 from keys import AVKEY, POLYGONKEY
 
+TRADINGDAYS = 252
 FVURL = "https://finviz.com/quote.ashx?t="
 CMCURL = "https://coinmarketcap.com/currencies/"
 FXURL1 = "https://finance.yahoo.com/quote/"
@@ -21,7 +22,3 @@ AVURL6 = "&to_symbol="
 BONDURL = "https://www.bloomberg.com/markets/rates-bonds/government-bonds/us"
 OPTIONSURL1 = "https://optioncharts.io/options/"
 OPTIONSURL2 = "/option-chain"
-POLYGONURL1 = f"https://api.polygon.io/v3/reference/options/contracts/O:"
-POLYGONURL2 = f"251219C00650000?apiKey={POLYGONKEY}"
-POLYGONURL3 = f"https://api.polygon.io/v3/reference/optoins/contracts?ticker="
-POLYGONURL4 = f"&{POLYGONKEY}"

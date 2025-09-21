@@ -1,10 +1,49 @@
-from consts import OPTIONSURL1, OPTIONSURL2
+from consts import TRADINGDAYS, OPTIONSURL1, OPTIONSURL2
+import sys
+import time
+import requests
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import sys
+
+class OptionContract:
+    def __init__(self, ticker, symbol, strike, yte, price, cp_flag):
+        self.underlying = ticker
+        self.polygon_symbol = symbol
+        self.strike = strike
+        self.yte = yte
+        self.price = price
+        self.callorput = cp_flag
+        
+    def __repr__(self):
+        return (f"OptionContract("
+                f"underlying='{self.underlying}', "
+                f"symbol='{self.polygon_symbol}', "
+                f"strike={self.strike}, "
+                f"type='{self.callorput}', "
+                f"price={self.price}, "
+                f"yte={self.yte:.4f})")
+
+class OptionExpiry:
+    def __init__(self, ticker, date, yte, calls=None, puts=None):
+        self.underlying = ticker
+        self.date = date
+        self.yte = yte
+        self.calls = calls if calls is not None else []
+        self.puts = puts if puts is not None else []
+
+    def __repr__(self):
+        return (
+            f"OptionExpiry("
+            f"underlying='{self.underlying}', "
+            f"date='{self.date}', "
+            f"yte={self.yte:.4f}, "
+            f"calls={len(self.calls)} contracts, "
+            f"puts={len(self.puts)} contracts)"
+        )
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -27,7 +66,8 @@ if __name__ == "__main__":
     # Click the expiration button
     try:
         button = driver.find_element(By.ID, "expiration-dates-form-button-1")
-        button.click()
+        driver.execute_script("arguments[0].scrollIntoView(true);", button)
+        driver.execute_script("arguments[0].click();", button)
 
         # Wait until at least one label of the desired class is visible
         wait = WebDriverWait(driver, 10)
@@ -47,33 +87,44 @@ if __name__ == "__main__":
     )
     expirations = [lbl.text for lbl in labels if lbl.text.strip()]
 
-    print(f"Expirations for {ticker}:")
+    print(f"scripts/options.py :: All Expirations for {ticker}:\n")
+    formatted_expirations = []
+    exp_in_years = []
     for e in expirations:
-        print(e)
-
-    driver.quit()
-    """
-    ticker = sys.argv[1].upper()
-    url = f"{POLYGONURL1}{ticker}{POLYGONURL2}"
+        date_str = e.split("(")[0].strip()
         
-    response = requests.get(url)
-    data = response.json()
+        exp_dt = datetime.strptime(date_str, "%b %d, %Y")
+        final_dt = exp_dt.strftime("%y%m%d")
+        formatted_expirations.append(final_dt)
         
-    if data.get("status") != "OK":
-        print("scripts/options.py :: Error fetching data:", data)
-        sys.exit(1)
+        days_part = e.split("(")[1].split()[0]
+        days = int(days_part)
+        years = days / TRADINGDAYS
+        exp_in_years.append(years)
 
-    # Polygon can return either a single contract or a list depending on endpoint
-    contracts = data.get("results", [])
-        
-    # ensure we always have a list
-    if isinstance(contracts, dict):
-        contracts = [contracts]
+        if len(formatted_expirations) != len(exp_in_years):
+            print(f"scripts/options.py :: len(formatted_expirations) != len(exp_in_years)")
+            sys.exit(1)
 
-    # filter only calls
-    calls = [c for c in contracts if c.get("contract_type") == "call"]
+    blue_cells = driver.find_elements(By.CSS_SELECTOR, "td.tw-bg-blue-50")
+    blue_texts = [cell.text.strip() for cell in blue_cells if cell.text.strip()]
+    option_chain = [] # list of OptionExpirations
+    print(f"scripts/options.py :: Found {len(blue_texts)} strike prices")
+    for i in range(0, len(exp_in_years)):
+        calls = []
+        puts = []
+        for text in blue_texts:
+            money_text = str(text).replace(".", "")
+            dollar_part = f"00{money_text}00"
+            formatted_csymbol = f"O:{ticker}{formatted_expirations[i]}C{dollar_part}"
+            formatted_psymbol = f"O:{ticker}{formatted_expirations[i]}P{dollar_part}"
+            call = OptionContract(ticker, formatted_csymbol, text, exp_in_years[i], 100.00, True)
+            calls.append(call)
+            put = OptionContract(ticker, formatted_psymbol, text, exp_in_years[i], 100.00, False)
+            puts.append(put)
 
-    print(f"scripts/options.py :: Found {len(calls)} calls for {ticker}:\n")
-    for c in calls:
-        print(f"{c['ticker']} | Strike: {c['strike_price']} | Exp: {c['expiration_date']}")
-     """
+        option_chain.append(OptionExpiry(ticker, expirations[i], exp_in_years[i], calls, puts))
+
+
+    for expiry in option_chain:
+        print(f"scripts/options.py Expiry: {expiry}")
