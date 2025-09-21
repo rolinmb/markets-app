@@ -1,6 +1,7 @@
 from util import *
 from consts import TRADINGDAYS, OPTIONSURL1, OPTIONSURL2, OPTIONSURL3, OPTIONSURL4
 import sys
+import csv
 import time
 import requests
 from datetime import datetime
@@ -31,8 +32,7 @@ if __name__ == "__main__":
         button = driver.find_element(By.ID, "expiration-dates-form-button-1")
         driver.execute_script("arguments[0].scrollIntoView(true);", button)
         driver.execute_script("arguments[0].click();", button)
-
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 1)
         wait.until(
             EC.visibility_of_element_located(
                 (By.CSS_SELECTOR, "label.tw-ml-3.tw-min-w-0.tw-flex-1.tw-text-gray-600")
@@ -63,6 +63,8 @@ if __name__ == "__main__":
         if len(formatted_expiration_dates) != len(exp_in_years):
             print(f"scripts/options.py :: len(formatted_expiration_dates) != len(exp_in_years)")
             sys.exit(1)
+    
+    print(f"scripts/options.py :: Successfully parsed expiration dates and calculated yte for each expiry/contract")
     time.sleep(1.0)
     expiries = []
     for i in range(0, len(exp_in_years)):
@@ -99,9 +101,24 @@ if __name__ == "__main__":
         expiries.append(OptionExpiry(ticker, formatted_expiration_dates[i], exp_in_years[i], calls, puts))
     
     option_chain = OptionChain(ticker, expiries)
-    for expiry in option_chain.expiries:  # For each expiry
-        for i in range(0, len(expiry.calls)):  # For each strike
-            print(f"scripts/options.py :: Expiry {expiry.date} ::: "
-                f"Strike {expiry.calls[i].strike} | "
-                f"Calls {expiry.calls[i]} | "
-                f"Puts {expiry.puts[i]}\n")
+    csv_filename = f"{ticker}chain.csv"
+    with open(csv_filename, mode="w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([
+            "expiry", "underlying", "strike", "type",
+            "last", "bid", "ask", "volume", "open_interest", "yte"
+        ])
+
+        for expiry in option_chain.expiries:
+            for c in expiry.calls:
+                writer.writerow([
+                    expiry.date, c.underlying, c.strike, "Call",
+                    c.price, c.bid, c.ask, c.volume, c.open_interest, f"{c.yte:.4f}"
+                ])
+            for p in expiry.puts:
+                writer.writerow([
+                    expiry.date, p.underlying, p.strike, "Put",
+                    p.price, p.bid, p.ask, p.volume, p.open_interest, f"{p.yte:.4f}"
+                ])
+
+    print(f"scripts/options.py :: Saved OptionChain to {csv_filename}")

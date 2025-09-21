@@ -188,7 +188,13 @@ void FetchAndDisplay(HWND hwnd, const std::string& asset) {
 
     LoadAndShowBMP(hwnd, asset);
 
-    std::string csvPath = "data/" + asset + ".csv";
+    std::string csvPath;
+    if (g_currentMode == AssetMode::Options) {
+        csvPath = "data/" + asset + "chain.csv";
+    }
+    else {
+        csvPath = "data/" + asset + ".csv";
+    }
     auto rows = LoadCSV(csvPath);
 
     if(rows.empty() && g_currentMode != AssetMode::Commodities) {
