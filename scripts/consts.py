@@ -1,6 +1,7 @@
 from keys import AVKEY
 
 TRADINGDAYS = 252
+FEDFUNDS = 0.0408
 FVURL = "https://finviz.com/quote.ashx?t="
 CMCURL = "https://coinmarketcap.com/currencies/"
 FXURL1 = "https://finance.yahoo.com/quote/"

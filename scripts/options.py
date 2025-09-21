@@ -1,11 +1,16 @@
 from util import *
 from consts import TRADINGDAYS, OPTIONSURL1, OPTIONSURL2, OPTIONSURL3, OPTIONSURL4
+import os
 import sys
 import csv
 import time
 import requests
+import numpy as np
+from PIL import Image
 from datetime import datetime
 from selenium import webdriver
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -25,7 +30,7 @@ if __name__ == "__main__":
 
     url = f"{OPTIONSURL1}{ticker}{OPTIONSURL2}"
     driver.get(url)
-
+    print(f"scripts/options.py :: Successfully fetched html data from {url}")
     driver.implicitly_wait(5)
 
     try:
@@ -43,11 +48,14 @@ if __name__ == "__main__":
         driver.quit()
         sys.exit(1)
 
+    spans = driver.find_elements(By.CSS_SELECTOR, ".tw-text-3xl.tw-font-semibold")
+    price_string = spans[1].text.strip()
+    print(f"scripts/options.py :: Scraped Underlying Price: {price_string}")
+    
     labels = driver.find_elements(
         By.CSS_SELECTOR, "label.tw-ml-3.tw-min-w-0.tw-flex-1.tw-text-gray-600"
     )
     expirations_text = [lbl.text for lbl in labels if lbl.text.strip()]
-
     formatted_expiration_dates = []
     exp_in_years = []
     for text in expirations_text:
@@ -70,6 +78,7 @@ if __name__ == "__main__":
     for i in range(0, len(exp_in_years)):
         url = f"{OPTIONSURL3}{formatted_expiration_dates[i]}{OPTIONSURL4}"
         driver.get(url)
+        time.sleep(1.0)
         calls = []
         puts = []
         table = driver.find_element(By.CSS_SELECTOR, "table.table.table-sm.table-hover")
@@ -91,13 +100,11 @@ if __name__ == "__main__":
             pask = cols[8]
             pvol = cols[9]
             p_oi = cols[10]
-            c = OptionContract(ticker, strike, exp_in_years[i], clast, cbid, cask, cvol, c_oi, True)
-            p = OptionContract(ticker, strike, exp_in_years[i], plast, pbid, pask, pvol, p_oi, False)
+            c = OptionContract(ticker, strike, price_string, exp_in_years[i], clast, cbid, cask, cvol, c_oi, True)
+            p = OptionContract(ticker, strike, price_string, exp_in_years[i], plast, pbid, pask, pvol, p_oi, False)
             calls.append(c)
             puts.append(p)
-            time.sleep(1.0)
         print(f"scripts/options.py :: Processed Calls and Puts for expiration {formatted_expiration_dates[i]}")
-
         expiries.append(OptionExpiry(ticker, formatted_expiration_dates[i], exp_in_years[i], calls, puts))
     
     option_chain = OptionChain(ticker, expiries)
@@ -105,20 +112,64 @@ if __name__ == "__main__":
     with open(csv_filename, mode="w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow([
-            "expiry", "underlying", "strike", "type",
+            "expiry", "underlying", "underlying_price", "strike", "call_or_put",
             "last", "bid", "ask", "volume", "open_interest", "yte"
         ])
 
         for expiry in option_chain.expiries:
             for c in expiry.calls:
                 writer.writerow([
-                    expiry.date, c.underlying, c.strike, "Call",
-                    c.price, c.bid, c.ask, c.volume, c.open_interest, f"{c.yte:.4f}"
+                    expiry.date, c.underlying, c.underlying_price, c.strike, "Call",
+                    c.midprice, c.bidprice, c.askprice, c.volume, c.openinterest, f"{c.yte:.2f}"
                 ])
             for p in expiry.puts:
                 writer.writerow([
-                    expiry.date, p.underlying, p.strike, "Put",
-                    p.price, p.bid, p.ask, p.volume, p.open_interest, f"{p.yte:.4f}"
+                    expiry.date, p.underlying, p.underlying_price, p.strike, "Put",
+                    p.midprice, p.bidprice, p.askprice, p.volume, p.openinterest, f"{p.yte:.2f}"
                 ])
 
-    print(f"scripts/options.py :: Saved OptionChain to {csv_filename}")
+    print(f"scripts/options.py :: Saved {ticker} Option Chain to {csv_filename}")
+    #TODO: Plot iv surface for the cpp windows app to show
+    strikes = []
+    ytes = []
+    ivs = []
+
+    for expiry in option_chain.expiries:
+        for c in expiry.calls:  # you could also add puts if desired
+            strikes.append(c.strike)
+            ytes.append(c.yte)
+            ivs.append(c.iv)
+
+    # Convert to numpy arrays
+    strikes = np.array(strikes)
+    ytes = np.array(ytes)
+    ivs = np.array(ivs)
+
+    # Create 3D scatter plot
+    fig = plt.figure(figsize=(10, 7))
+    ax = fig.add_subplot(111, projection="3d")
+    sc = ax.scatter(strikes, ytes, ivs, c=ivs, cmap="viridis")
+    ax.set_xlabel("Strike Price")
+    ax.set_ylabel("Years to Expiration (YTE)")
+    ax.set_zlabel("Implied Volatility")
+    ax.set_title(f"IV Surface for {ticker}")
+    fig.colorbar(sc, ax=ax, label="IV")
+
+    png_path = os.path.join("img", f"{ticker}civ.png")
+    bmp_path = os.path.join("img", f"{ticker}civ.bmp")
+
+    plt.savefig(png_path, dpi=150)
+    plt.close()
+
+    print("scripts/options.py :: PNG iv surface chart saved to", png_path)
+
+    with Image.open(png_path) as png:
+        png = png.resize((400,300), Image.LANCZOS)
+        png.convert("RGB").save(bmp_path, "BMP")
+
+    # Clean up
+    try:
+        os.remove(png_path)
+        print(f"scripts/options.py :: Deleted temporary PNG: {png_path}\n")
+    except:
+        pass

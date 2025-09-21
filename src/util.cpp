@@ -97,15 +97,21 @@ std::vector<std::vector<std::string>> LoadCSV(const std::string& path) {
 }
 
 void LoadAndShowBMP(HWND hwnd, const std::string& asset) {
-    // Build path to BMP
-    std::string bmpPath = "img/" + asset + ".bmp";
-
+    std::string bmpPath;
+    if (g_currentMode == AssetMode::Options) {
+        std::string upperAsset = asset;
+        std::transform(upperAsset.begin(), upperAsset.end(), upperAsset.begin(),
+                    [](unsigned char c){ return std::toupper(c); });
+        bmpPath = "img/" + upperAsset + "chain.bmp";
+    }
+    else {
+        bmpPath = "img/" + asset + ".bmp";
+    }
     // Free old bitmap
     if (hCurrentBmp) {
         DeleteObject(hCurrentBmp);
         hCurrentBmp = NULL;
     }
-
     // Load new BMP
     hCurrentBmp = (HBITMAP)LoadImageA(
         NULL,
@@ -114,7 +120,6 @@ void LoadAndShowBMP(HWND hwnd, const std::string& asset) {
         0, 0,
         LR_LOADFROMFILE
     );
-
     if (hCurrentBmp) {
         SendMessage(hImageView, STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)hCurrentBmp);
     } else {
