@@ -1,5 +1,5 @@
 from util import *
-from consts import TRADINGDAYS, OPTIONSURL1, OPTIONSURL2
+from consts import TRADINGDAYS, OPTIONSURL1, OPTIONSURL2, OPTIONSURL3, OPTIONSURL4
 import sys
 import time
 import requests
@@ -25,16 +25,13 @@ if __name__ == "__main__":
     url = f"{OPTIONSURL1}{ticker}{OPTIONSURL2}"
     driver.get(url)
 
-    # Wait for the page to load
     driver.implicitly_wait(5)
 
-    # Click the expiration button
     try:
         button = driver.find_element(By.ID, "expiration-dates-form-button-1")
         driver.execute_script("arguments[0].scrollIntoView(true);", button)
         driver.execute_script("arguments[0].click();", button)
 
-        # Wait until at least one label of the desired class is visible
         wait = WebDriverWait(driver, 10)
         wait.until(
             EC.visibility_of_element_located(
@@ -46,47 +43,57 @@ if __name__ == "__main__":
         driver.quit()
         sys.exit(1)
 
-    # Find labels by CSS class
     labels = driver.find_elements(
         By.CSS_SELECTOR, "label.tw-ml-3.tw-min-w-0.tw-flex-1.tw-text-gray-600"
     )
-    expirations = [lbl.text for lbl in labels if lbl.text.strip()]
+    expirations_text = [lbl.text for lbl in labels if lbl.text.strip()]
 
-    print(f"scripts/options.py :: All Expirations for {ticker}:\n")
-    formatted_expirations = []
+    formatted_expiration_dates = []
     exp_in_years = []
-    for e in expirations:
-        date_str = e.split("(")[0].strip()
-        
+    for text in expirations_text:
+        date_str = text.split("(")[0].strip()
         exp_dt = datetime.strptime(date_str, "%b %d, %Y")
-        final_dt = exp_dt.strftime("%y%m%d")
-        formatted_expirations.append(final_dt)
-        
-        days_part = e.split("(")[1].split()[0]
+        final_dt = exp_dt.strftime("%Y-%m-%d")
+        formatted_expiration_dates.append(final_dt)
+
+        days_part = text.split("(")[1].split()[0]
         days = int(days_part)
         years = days / TRADINGDAYS
         exp_in_years.append(years)
-
-        if len(formatted_expirations) != len(exp_in_years):
-            print(f"scripts/options.py :: len(formatted_expirations) != len(exp_in_years)")
+        if len(formatted_expiration_dates) != len(exp_in_years):
+            print(f"scripts/options.py :: len(formatted_expiration_dates) != len(exp_in_years)")
             sys.exit(1)
 
-    blue_cells = driver.find_elements(By.CSS_SELECTOR, "td.tw-bg-blue-50")
-    blue_texts = [cell.text.strip() for cell in blue_cells if cell.text.strip()]
-    expiries = []
-    for i in range(0, len(exp_in_years)):
+    print("scripts/options.py :: URLs Needed to query:")
+    for datestr in formatted_expiration_dates:
+        url = f"{OPTIONSURL3}{datestr}{OPTIONSURL4}"
+        driver.get(url)
         calls = []
         puts = []
-        for text in blue_texts:
-            money_text = str(text).replace(".", "")
-            dollar_part = f"00{money_text}00"
-            formatted_csymbol = f"O:{ticker}{formatted_expirations[i]}C{dollar_part}"
-            formatted_psymbol = f"O:{ticker}{formatted_expirations[i]}P{dollar_part}"
-            calls.append(OptionContract(ticker, formatted_csymbol, text, exp_in_years[i], 100.00, True))
-            puts.append(OptionContract(ticker, formatted_psymbol, text, exp_in_years[i], 100.00, False))
+        table = driver.find_element(By.CSS_SELECTOR, "table.table.table-sm.table-hover")
+        rows = table.find_elements(By.TAG_NAME, "tr")[1:]
+        for row in rows:
+            cbid = cask = cvol = c_oi = strike = 0
+            pbid = pask = pvol = p_oi = 0
+            cols = [c.text.strip() for c in row.find_elements(By.TAG_NAME, "td")]
+            if len(cols) != 11 or cols[6] == "-":
+                continue
+            clast = cols[0] if cols[0] != "-" else "0.00"
+            cbid = cols[1]
+            cask = cols[2]
+            cvol = cols[3]
+            c_oi = cols[4]
+            strike = cols[6]
+            plast = cols[7]
+            pbid = cols[8]
+            pask = cols[9]
+            pvol = cols[10]
+            p_oi = cols[11]
+            calls.append(OptionContract(ticker, strike, exp_in_years[i], clast, cbid, cask, cvol, c_oi, True))
+            puts.append(OptionContract(ticker, strike, exp_in_years[i], pbid, pask, pvol, p_oi, False))
 
         expiries.append(OptionExpiry(ticker, expirations[i], exp_in_years[i], calls, puts))
-
+    
     option_chain = OptionChain(ticker, expiries)
     for e in option_chain.expiries:  # For each expiry
         for i in range(0, len(e.calls)):  # For each strike

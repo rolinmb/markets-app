@@ -1,4 +1,4 @@
-from keys import AVKEY, POLYGONKEY
+from keys import AVKEY
 
 TRADINGDAYS = 252
 FVURL = "https://finviz.com/quote.ashx?t="
@@ -22,3 +22,5 @@ AVURL6 = "&to_symbol="
 BONDURL = "https://www.bloomberg.com/markets/rates-bonds/government-bonds/us"
 OPTIONSURL1 = "https://optioncharts.io/options/"
 OPTIONSURL2 = "/option-chain"
+OPTIONSURL3 = "https://optioncharts.io/options/SPY/option-chain?option_type=all&expiration_dates="
+OPTIONSURL4 = ":w&view=straddle&strike_range=all"

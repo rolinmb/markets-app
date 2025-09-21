@@ -1,20 +1,26 @@
 class OptionContract:
-    def __init__(self, ticker, symbol, strike, yte, price, cp_flag):
+    def __init__(self, ticker, strike, yte, lastprice, bidprice, askprice, vol, oi, cp_flag):
         self.underlying = ticker
-        self.polygon_symbol = symbol
-        self.strike = strike
-        self.yte = yte
-        self.price = price
-        self.callorput = cp_flag
+        self.strike = float(strike.replace(",", ""))
+        self.yte = float(yte)
+        self.lastprice = float(lastprice.replace(",", ""))
+        self.bidprice = float(bidprice.replace(",", ""))
+        self.askprice = float(askprice.replace(",", ""))
+        self.midprice = float((self.bidprice + self.askprice) / 2)
+        self.volume = float(vol.replace(",", ""))
+        self.openinterest = float(oi.replace(",", ""))
+        self.iscall = cp_flag
 
     def __repr__(self):
-        return (f"OptionContract("
-                f"underlying='{self.underlying}', "
-                f"symbol='{self.polygon_symbol}', "
-                f"strike={self.strike}, "
-                f"type='{self.callorput}', "
-                f"price={self.price}, "
-                f"yte={self.yte:.4f})")
+        return (
+            f"OptionContract("        
+            f"underlying='{self.underlying}', "
+            f"symbol='{self.polygon_symbol}', "
+            f"strike={self.strike}, "
+            f"type='{self.callorput}', "
+            f"price={self.price}, "
+            f"yte={self.yte:.4f})"
+        )
 
 class OptionExpiry:
     def __init__(self, ticker, date, yte, calls=None, puts=None):
@@ -41,6 +47,8 @@ class OptionChain:
 
     def __repr__(self):
         expiry_dates = [exp.date for exp in self.expiries]
-        return (f"OptionChain(underlying='{self.underlying}', "
-                f"expiries={len(self.expiries)}, "
-                f"dates={expiry_dates})")
+        return (
+            f"OptionChain(underlying='{self.underlying}', "
+            f"expiries={len(self.expiries)}, "
+            f"dates={expiry_dates})"
+        )
