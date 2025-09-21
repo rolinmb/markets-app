@@ -96,6 +96,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 SetWindowTextA(hInfoLabel,"Enter an equity ticker symbol. (1-4 chars)");
                 ShowWindow(GetDlgItem(hwnd, ID_EDITBOX), SW_SHOW);
                 ShowWindow(hComboBox, SW_HIDE);
+                ShowWindow(hPriceLabel, SW_SHOW);
+                ShowWindow(hChangeLabel, SW_SHOW);
+                ShowWindow(hDollarChangeLabel, SW_SHOW);
                 break;
             case AssetMode::Crypto:
                 SetWindowTextA(hModeButton,"switch to forex mode");
@@ -103,6 +106,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 SetWindowTextA(hInfoLabel,"Enter a cryptocurrency name. (1-15 chars)");
                 ShowWindow(GetDlgItem(hwnd, ID_EDITBOX), SW_SHOW);
                 ShowWindow(hComboBox, SW_HIDE);
+                ShowWindow(hPriceLabel, SW_SHOW);
+                ShowWindow(hChangeLabel, SW_SHOW);
+                ShowWindow(hDollarChangeLabel, SW_SHOW);
                 break;
             case AssetMode::Forex:
                 SetWindowTextA(hModeButton,"switch to commodities mode");
@@ -110,13 +116,30 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 SetWindowTextA(hInfoLabel,"Enter a currency pair (e.g., eurusd, max 6 chars)");
                 ShowWindow(GetDlgItem(hwnd, ID_EDITBOX), SW_SHOW);
                 ShowWindow(hComboBox, SW_HIDE);
+                ShowWindow(hPriceLabel, SW_SHOW);
+                ShowWindow(hChangeLabel, SW_SHOW);
+                ShowWindow(hDollarChangeLabel, SW_SHOW);
                 break;
             case AssetMode::Commodities:
-                SetWindowTextA(hModeButton,"switch to equities mode");
+                SetWindowTextA(hModeButton,"switch to bonds mode");
                 SetWindowTextA(hAppLabel,"Commodities");
                 SetWindowTextA(hInfoLabel,"Select a commodity from the list:");
                 ShowWindow(GetDlgItem(hwnd, ID_EDITBOX), SW_HIDE);
                 ShowWindow(hComboBox, SW_SHOW);
+                ShowWindow(hPriceLabel, SW_SHOW);
+                ShowWindow(hChangeLabel, SW_SHOW);
+                ShowWindow(hDollarChangeLabel, SW_SHOW);
+                break;
+            case AssetMode::Bonds:
+                SetWindowTextA(hModeButton,"switch to equities mode");
+                SetWindowTextA(hAppLabel,"Bonds");
+                SetWindowTextA(hInfoLabel,"US Treasury Yield Curve");
+                ShowWindow(GetDlgItem(hwnd, ID_EDITBOX), SW_HIDE);
+                ShowWindow(hComboBox, SW_HIDE);
+                // Hide price/change/dollar labels
+                ShowWindow(hPriceLabel, SW_HIDE);
+                ShowWindow(hChangeLabel, SW_HIDE);
+                ShowWindow(hDollarChangeLabel, SW_HIDE);
                 break;
             }
             SetWindowTextA(hTextDisplay, "");

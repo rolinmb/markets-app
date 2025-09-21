@@ -31,7 +31,8 @@ AssetMode NextMode(AssetMode current) {
         case AssetMode::Equities: return AssetMode::Crypto;
         case AssetMode::Crypto:   return AssetMode::Forex;
         case AssetMode::Forex:    return AssetMode::Commodities;
-        case AssetMode::Commodities: return AssetMode::Equities;
+        case AssetMode::Commodities: return AssetMode::Bonds;
+        case AssetMode::Bonds:       return AssetMode::Equities;
     }
     return AssetMode::Equities;
 }
@@ -42,6 +43,7 @@ std::string ModeName(AssetMode mode) {
         case AssetMode::Crypto:   return "crypto";
         case AssetMode::Forex:    return "forex";
         case AssetMode::Commodities: return "commodities";
+        case AssetMode::Bonds:       return "bonds";
     }
     return "unknown";
 }
@@ -172,6 +174,7 @@ void FetchAndDisplay(HWND hwnd, const std::string& asset) {
         case AssetMode::Crypto:   command = "python scripts/cryptos.py " + asset; break;
         case AssetMode::Forex:    command = "python scripts/forex.py " + asset; break;
         case AssetMode::Commodities: command = "python scripts/commodities.py " + asset; break;
+        case AssetMode::Bonds:    command = "python scripts/bonds.py"; break;
     }
     system(command.c_str());
 

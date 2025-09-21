@@ -12,7 +12,7 @@
 #define ID_BG_TIMER       102
 
 // ---------------- Mode enum ----------------
-enum class AssetMode { Equities, Crypto, Forex, Commodities };
+enum class AssetMode { Equities, Crypto, Forex, Commodities, Bonds };
 extern AssetMode g_currentMode;
 
 // ---------------- Globals ----------------

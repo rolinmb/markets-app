@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
         plt.figure(figsize=(10, 5))
         plt.plot(df.index, df["4. close"], label="Close Price")
-        plt.title(f"{fromcurrency}/{tocurrency} Daily Close Prices")
+        plt.title(f"{fromcurrency}/{tocurrency} Daily Close Price")
         plt.xlabel("Date")
         plt.ylabel("Price ($)")
         plt.legend()
@@ -88,6 +88,6 @@ if __name__ == "__main__":
         if os.path.exists(png_path):
             os.remove(png_path)
 
-        print(f"scripts/forex.py :: Saved {fromcurrency}{tocurrency} close price chart to {bmp_path}\n")
+        print(f"scripts/forex.py :: Saved {fromcurrency}/{tocurrency} close price chart to {bmp_path}\n")
     else:
         print(f"scripts/forex.py :: No exchange rate cross argument provided.\n")

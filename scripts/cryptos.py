@@ -87,7 +87,7 @@ if __name__ == "__main__":
         time_series = data.get("Time Series (Digital Currency Daily)", {})
 
         if not time_series:
-            print(f"scripts/cryptos.py :: No {crypto} time series data found in AlphaVantage response.\n")
+            print(f"scripts/cryptos.py :: No {crypto} time series data found in AlphaVantage response.")
             sys.exit(1)
 
         print(f"scripts/cryptos.py :: Successfully fetched time series data for {crypto}.")
@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
         plt.figure(figsize=(10, 5))
         plt.plot(df.index, df["4. close"], label="Close Price")
-        plt.title(f"{crypto} Daily Close Prices")
+        plt.title(f"{crypto} Daily Close Price")
         plt.xlabel("Date")
         plt.ylabel("Price ($)")
         plt.legend()

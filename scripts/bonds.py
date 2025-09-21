@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
+    # Make sure stdout is UTF-8 (Windows console fix)
     sys.stdout.reconfigure(encoding="utf-8")
     print("scripts/bonds.py :: Requesting cnbc.com/bonds for the html table content...")
 
@@ -53,7 +54,7 @@ if __name__ == "__main__":
 
         plt.figure(figsize=(10, 5))
         plt.plot(x_labels, y_values, marker="o", linestyle="-", color="blue")
-        plt.title("Treasury Yield Curve")
+        plt.title("Current Treasury Yield Curve")
         plt.xlabel("Tenor")
         plt.ylabel("Yield (%)")
         plt.xticks(rotation=45, ha="right")
@@ -72,7 +73,7 @@ if __name__ == "__main__":
         if os.path.exists(png_path):
             os.remove(png_path)
         
-        print("scripts/bonds.py :: img/bonds.bmp written successfully")
+        print("scripts/bonds.py :: img/bonds.bmp written successfully\n")
         
 
         

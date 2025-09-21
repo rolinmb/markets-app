@@ -110,7 +110,7 @@ def main():
                 pass
             try:
                 os.remove(png_path)
-                print("scripts/commodities.py :: Deleted temporary PNG:", png_path)
+                print(f"scripts/commodities.py :: Deleted temporary PNG: {png_path}\n")
             except:
                 pass
 
